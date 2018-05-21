@@ -1,0 +1,16 @@
+1 leave_house
+3 eating
+4 use_toilet
+5 take_shower
+6 brush_teeth
+10 go_to_bed
+13 prepare_breakfast
+15 prepare_dinner
+16 get_snack
+17 get_drink
+18 put_items_in_dishwasher
+19 unload_dishwasher
+20 store_groceries
+22 put_clothes_in_washingmachine
+23 unload_washingmachine
+25 receive_guest

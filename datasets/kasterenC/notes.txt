@@ -1,0 +1,1 @@
+- Should we ignore "upstairs" and "downstairs" for bathroom activities? In that case, sensor 8 and 10 would both have the same label toilet_flush, for example. And activities would also change: for example, activities 4 and 7 would both have the label "use_toilet"

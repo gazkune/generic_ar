@@ -1,0 +1,23 @@
+5 bed_right bedroom
+6 couch living_room
+7 freezer kitchen
+8 toilet_flush bathroom
+10 toilet_flush bathroom
+11 bathroom_door bathroom
+13 cutlery kitchen
+15 keys kitchen
+16 bathroom_door bathroom
+18 cutlery kitchen
+20 saucepan kitchen
+21 microwave kitchen
+22 garbage_bin kitchen
+23 plates_cupboard kitchen
+25 toilet_door bathroom (Toilet)
+27 cupboard_cups kitchen
+28 frontdoor hall
+29 bedroom_door bedroom
+30 fridge kitchen
+35 bathtub bathroom
+36 dresser bedroom
+38 sink_top bathroom
+39 bed_left bedroom
