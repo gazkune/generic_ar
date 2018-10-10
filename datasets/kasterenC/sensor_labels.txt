@@ -12,9 +12,9 @@
 21 microwave kitchen
 22 garbage_bin kitchen
 23 plates_cupboard kitchen
-25 toilet_door bathroom (Toilet)
+25 toilet_door bathroom
 27 cupboard_cups kitchen
-28 frontdoor hall
+28 front_door hall
 29 bedroom_door bedroom
 30 fridge kitchen
 35 bathtub bathroom

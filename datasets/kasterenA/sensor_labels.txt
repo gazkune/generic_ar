@@ -4,11 +4,11 @@
 7 cups_cupboard kitchen
 8 fridge kitchen
 9 plates_cupboard kitchen
-12 frontdoor hall
+12 front_door hall
 13 dishwasher kitchen
 14 toilet_flush toilet
 17 freezer kitchen
 18 pans_cupboard kitchen
-20 washingmachine kitchen
+20 washing_machine kitchen
 23 groceries_cupboard kitchen
 24 hall_bedroom_door bedroom

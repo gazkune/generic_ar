@@ -11,6 +11,6 @@
 18 put_items_in_dishwasher
 19 unload_dishwasher
 20 store_groceries
-22 put_clothes_in_washingmachine
-23 unload_washingmachine
+22 put_clothes_in_washing_machine
+23 unload_washing_machine
 25 receive_guest

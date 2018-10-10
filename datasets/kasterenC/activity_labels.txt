@@ -4,7 +4,7 @@
 5 take_shower
 6 brush_teeth
 7 use_toilet
-8 take_bath (NoInstance)
+8 take_bath
 9 shave
 10 go_to_bed
 11 get_dressed
@@ -14,14 +14,14 @@
 15 prepare_dinner
 16 get_snack
 17 get_drink
-18 put_items_in_dishwasher (NoInstance)
-19 unload_dishwasher (NoInstance)
-20 store_groceries (NoInstance)
-21 grooming (NoInstance)
-22 put_clothes_in_washingmachine (NoInstance)
-23 unload_washingmachine (NoInstance)
-25 receive_guest (NoInstance)
-26 watch_tv (NoInstance)
-27 read_paper (NoInstance)
+18 put_items_in_dishwasher
+19 unload_dishwasher
+20 store_groceries
+21 grooming
+22 put_clothes_in_washing_machine
+23 unload_washing_machine
+25 receive_guest
+26 watch_tv
+27 read_paper
 28 relax
-30 unknown (NoInstance)
+30 unknown
