@@ -22,6 +22,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 import numpy as np
 
 import datetime
+import json
 
 
 # Directory of datasets
@@ -247,7 +248,7 @@ def create_embedding_matrix(tokenizer, action_dict):
 
 
 
-def createStoreNaiveDatasets(X, y):
+def create_store_naive_datasets(X, y):
     print "Naive strategy"
     total_examples = len(X)
     train_per = 0.6
@@ -297,7 +298,7 @@ def createStoreNaiveDatasets(X, y):
     
     print "  Formatted data saved"
     
-def createStoreStratifiedDatasets(X, y):
+def create_store_stratified_datasets(X, y):
     print "Stratified strategy"
     
     # Create the StratifiedShuffleSplit object
@@ -409,8 +410,7 @@ def main(argv):
         print "Unique activities:"
         print unique_activities
 
-        total_activities = len(unique_activities)
-        #action_vectors = json.load(open(ACTION_VECTORS, 'r'))
+        total_activities = len(unique_activities)        
     
         # Generate the dict to transform activities to integer numbers
         activity_to_int = dict((c, i) for i, c in enumerate(unique_activities))
@@ -418,6 +418,11 @@ def main(argv):
         int_to_activity = dict((i, c) for i, c in enumerate(unique_activities))
     
         # TODO: save those two dicts in a file
+        with open(DATASET+"_activity_to_int.json", 'w') as fp:
+            json.dump(activity_to_int, fp, indent=4)
+        
+        with open(DATASET+"_int_to_activity.json", 'w') as fp:
+            json.dump(int_to_activity, fp, indent=4)        
         
         print df.head(10)        
         
@@ -430,10 +435,12 @@ def main(argv):
         print "Loading", WORD2VEC_MODEL, "model"
         model = KeyedVectors.load_word2vec_format(WORD2VEC_MODEL, binary=True)
         print "Model loaded"
+        
+        # action_dict holds a word vector (dependind on OP variable) for each action in df
         action_dict = build_action_representation(df, model)
         
-        # Generate temporal representations
-        
+        # TODO: Generate temporal representations
+        # function obtain_day_period(t) returns a day period in TEMPORAL_DICT given a Pandas timestamp
                 
         # Prepare sequences using action indices
         # Each action will be an index which will point to an action vector
@@ -475,7 +482,7 @@ def main(argv):
     
         # 2: Stratified datasets, making sure all three sets have the same percentage of classes
         # This strategy may break the time dependencies amongst sequences
-        createStoreStratifiedDatasets(X, y)
+        create_store_stratified_datasets(X, y)
     
     
     
