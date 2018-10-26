@@ -4,8 +4,6 @@ Created on Mon Sep 11 14:38:48 2017
 
 @author: gazkune
 """
-
-from collections import Counter
 import sys
 from copy import deepcopy
 
@@ -15,40 +13,27 @@ from keras.utils import np_utils
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 
-from gensim.models import KeyedVectors
-
-from sklearn.model_selection import StratifiedShuffleSplit
-
 import numpy as np
 
 import datetime
 import json
+import random
 
 
 # Directory of datasets
 DIR = '../datasets/'
-DATASET = 'kasterenA'
+DATASET = 'kasterenC'
 # Choose the specific dataset
-CSV = DIR + DATASET + '/kasterenA_groundtruth.csv'
-
-# ACTION_VECTORS = DIR + 'action2vec/actions_vectors.json'
-# Word2Vec model
-#WORD2VEC_MODEL = DIR + 'action2vec/continuous_complete_numeric_200_10.model' # d=200, win=10
-WORD2VEC_MODEL = '../word_models/GoogleNews-vectors-negative300.bin.gz' # d=300
+CSV = DIR + DATASET + '/kasterenC_groundtruth.csv'
 
 # Number of dimensions of an action vector
-ACTION_DIM = 300 # Make coherent with selected WORD2VEC_MODEL
+WORD_DIM = 300 # Make coherent with selected WORD2VEC_MODEL
 
 # Options for action representation
-OP = 'sum' # avg is another option
-DELTA = 60 # size of the sliding window for action segmentation in seconds
+OP = 'sum' # 'sum' and 'avg' are the current options
+DELTA = 60 # size of the sliding window for action segmentation in seconds (Kasteren et al use 60 seconds)
 
 OUTPUT_ROOT_NAME = DATASET + '_' + OP + '_' + str(DELTA) # make coherent with WORD2VEC_MODEL
-
-# To create training, validation and test set, we can load previously generated X and y files
-READ_PREVIOUS_XY = False
-PREVIOUS_X = OUTPUT_ROOT_NAME + '_x.npy'
-PREVIOUS_Y = OUTPUT_ROOT_NAME + '_y.npy'
 
 # We have to define temporal slots of a day
 # For that purpose use TEMPORAL_DICT
@@ -84,38 +69,57 @@ Input:
     delta -> integer to control the segmentation of actions for sequence generation
 Output:
     X -> array with action index sequences
-    y -> array with activity labels as integers
+    y_index -> array with activity labels as integers
+    y_embedding -> array with activity labels as word embeddings
     tokenizer -> instance of Tokenizer class used for action/index convertion
     max_sequence_length -> the length of a sequence
 
 """
-def prepare_embeddings(df, activity_to_int, delta = 0):
-    # Numpy array with all the actions of the dataset
+def prepare_embeddings(df, action_dict, activity_dict, temporal_dict, activity_to_int, delta = 0):
+    # Numpy array with all the actions of the dataset    
     actions = df['action'].values
     print "prepare_embeddings: actions length:", len(actions)
+    
+    # We have to add also the day-time periods inside temporal_dict
+    dayperiods = np.array(temporal_dict.keys())
+    words = np.append(actions, dayperiods)
     
     # Use tokenizer to generate indices for every action
     # Very important to put lower=False, since the Word2Vec model
     # has the action names with some capital letters
     # Very important to remove '.' and '_' from filters, since they are used
-    # in action names (T003_21.5)
+    # in action names (plates_cupboard)
     tokenizer = Tokenizer(lower=False, filters='!"#$%&()*+,-/:;<=>?@[\\]^`{|}~\t\n')
-    tokenizer.fit_on_texts(actions)
-    action_index = tokenizer.word_index
+    tokenizer.fit_on_texts(words)
+    word_index = tokenizer.word_index
     print "prepare_embeddings: action_index:"
-    print action_index.keys()
+    print word_index.keys()
     
-    # Build new list with action indices    
+    # Build new list with action indices
+    # The sequences to be trained will be action sequences
+    # Here we transform actions to indices using the word_index, where
+    # day periods are also present. However, day periods will be integrated
+    # afterwards (every action sequence will have a day period)    
     trans_actions = np.zeros(len(actions))
     for i in xrange(len(actions)):
         #print "prepare_embeddings: action:", actions[i]        
-        trans_actions[i] = action_index[actions[i]]
+        trans_actions[i] = word_index[actions[i]]
 
     #print trans_actions
+    
+    # X is for action sequences and their day period
     X = []
-    y = []
+    
+    # y is for activity labels
+    # we have two y: 
+    # 1) y_index, where activity labels are stored as activity indices
+    # 2) y_embedding: activities as stored using ther word embeddings (from activity_dict)
+    y_index = []
+    y_embedding = []
+    
     # Depending on delta, we generate sequences in different ways
     if delta == 0:
+        # TODO: this piece of code is taken from another problem -> review it before using!!!
         # Each sequence is composed by the actions of that
         # activity instance
         current_activity = ""
@@ -129,7 +133,10 @@ def prepare_embeddings(df, activity_to_int, delta = 0):
             
         
             if current_activity != df.loc[index, 'activity']:
-                y.append(activity_to_int[current_activity])
+                
+                y_index.append(activity_to_int[current_activity])
+                y_embedding.append(activity_dict[current_activity])
+                
                 X.append(actionsdf)            
                 #print current_activity, aux_actions
                 current_activity = df.loc[index, 'activity']
@@ -142,8 +149,9 @@ def prepare_embeddings(df, activity_to_int, delta = 0):
             aux_actions.append(trans_actions[i])
             i = i + 1
         
-        # Append the last activity
-        y.append(activity_to_int[current_activity])
+        # Append the last activity        
+        y_index.append(activity_to_int[current_activity])
+        y_embedding.append(activity_dict[current_activity])
         X.append(actionsdf)
         if len(actionsdf) > ACTIVITY_MAX_LENGTH:
             ACTIVITY_MAX_LENGTH = len(actionsdf)
@@ -180,13 +188,30 @@ def prepare_embeddings(df, activity_to_int, delta = 0):
             #print 'First:', first, 'Last:', last
             #actionsdf.append(np.array(trans_actions[first:last]))
             
-            # TODO: using 'first' and 'last' we have to add the time period of a the day at the beginning of 'actionsdf'
+            # Using 'first' and 'last' we have to add the time period of a day at the beginning of 'actionsdf'
+            first_period = obtain_day_period(auxdf.loc[first, 'timestamp'])
+            last_period = obtain_day_period(auxdf.loc[last, 'timestamp'])
+            action_seq_period = ''
+            if first_period == last_period:                
+                action_seq_period = first_period
+            else:
+                # decide day period for this action sequence with majority voting                
+                action_seq_period = auxdf['dayperiod'].value_counts().idxmax()                
             
             if first == last:
                 actionsdf.append(np.array(trans_actions[first]))
             else:
                 for j in xrange(first, last+1):            
                     actionsdf.append(np.array(trans_actions[j]))
+            
+            if action_seq_period == '':
+                print 'prepare_embeddings: problem computing day period of an action sequence'
+                print auxdf
+                sys.exit()
+                
+            # Append the day period for the action sequence
+            # We have to append the index generated by word_index
+            actionsdf.append(word_index[action_seq_period])
             
             if len(actionsdf) > DYNAMIC_MAX_LENGTH:
                 print " "
@@ -200,9 +225,19 @@ def prepare_embeddings(df, activity_to_int, delta = 0):
                 
                 
             X.append(actionsdf)
+            
+            # There are two strategies to store the activity of a given action sequence:
+            # 1: store the activity index (as it's already done)
+            # 2: store the word embedding of the activity using activity_dict (for regression problems)
+            
+            # Implementation of strategy 1
             # Find the dominant activity in the time slice of auxdf
             activity = auxdf['activity'].value_counts().idxmax()
-            y.append(activity_to_int[activity])
+            y_index.append(activity_to_int[activity])
+            
+            # Implementation of strategy 2
+            # Use the dominant activity label in the action sequence, as in strategy 1
+            y_embedding.append(activity_dict[activity])
             
             # Update current_index            
             #pos = df.index.get_loc(auxdf.index[len(auxdf)-1])
@@ -223,268 +258,138 @@ def prepare_embeddings(df, activity_to_int, delta = 0):
         X = pad_sequences(X, maxlen=ACTIVITY_MAX_LENGTH, dtype='float32')
         max_sequence_length = ACTIVITY_MAX_LENGTH
     
-    return X, y, tokenizer, max_sequence_length
+    return X, y_index, y_embedding, tokenizer, max_sequence_length
 
 # Function to create the embedding matrix, which will be used to initialize
 # the embedding layer of the network
-def create_embedding_matrix(tokenizer, action_dict):    
-    action_index = tokenizer.word_index
-    embedding_matrix = np.zeros((len(action_index) + 1, ACTION_DIM))
+def create_embedding_matrix(tokenizer, action_dict, temporal_dict):    
+    element_index = tokenizer.word_index
+    embedding_matrix = np.zeros((len(element_index) + 1, WORD_DIM))
     unknown_words = {}    
-    for action, i in action_index.items():
-        try:            
-            embedding_vector = action_dict[action]
-            embedding_matrix[i] = embedding_vector            
-        except Exception as e:
-            #print type(e) exceptions.KeyError
-            if action in unknown_words:
-                unknown_words[action] += 1
+    for element, i in element_index.items():
+        if element in action_dict:
+            embedding_vector = action_dict[element]
+            embedding_matrix[i] = embedding_vector 
+        elif element in temporal_dict:
+            embedding_vector = temporal_dict[element]
+            embedding_matrix[i] = embedding_vector
+        else:
+            if element in unknown_words:
+                unknown_words[element] += 1
             else:
-                unknown_words[action] = 1
+                unknown_words[element] = 1       
+        
     print "Number of unknown tokens: " + str(len(unknown_words))
     print unknown_words
     
     return embedding_matrix
 
 
-
-def create_store_naive_datasets(X, y):
-    print "Naive strategy"
-    total_examples = len(X)
-    train_per = 0.6
-    val_per = 0.2
-    # test_per = 0.2 # Not needed
-    
-    train_limit = int(train_per * total_examples)
-    val_limit = train_limit + int(val_per * total_examples)    
-    X_train = X[0:train_limit]
-    X_val = X[train_limit:val_limit]
-    X_test = X[val_limit:]
-    y_train = y[0:train_limit]
-    y_val = y[train_limit:val_limit]
-    y_test = y[val_limit:]    
-    print '  Total examples:', total_examples
-    print '  Train examples:', len(X_train), len(y_train) 
-    print '  Validation examples:', len(X_val), len(y_val)
-    print '  Test examples:', len(X_test), len(y_test)
-    sys.stdout.flush()  
-    X_train = np.array(X_train)
-    y_train = np.array(y_train)    
-    print '  Activity distribution for training:'
-    y_train_code = np.array([np.argmax(y_train[x]) for x in xrange(len(y_train))])
-    print Counter(y_train_code)
-
-    X_val = np.array(X_val)
-    y_val = np.array(y_val)
-    print '  Activity distribution for validation:'
-    y_val_code = np.array([np.argmax(y_val[x]) for x in xrange(len(y_val))])
-    print Counter(y_val_code)
-    
-    X_test = np.array(X_test)
-    y_test = np.array(y_test)    
-
-    print '  Activity distribution for testing:'
-    y_test_code = np.array([np.argmax(y_test[x]) for x in xrange(len(y_test))])
-    print Counter(y_test_code)
-
-    # Save training, validation and test sets using numpy serialization
-    np.save(OUTPUT_ROOT_NAME + '_' + str(DELTA) + '_x_train.npy', X_train)
-    np.save(OUTPUT_ROOT_NAME + '_' + str(DELTA) + '_x_val.npy', X_val)
-    np.save(OUTPUT_ROOT_NAME + '_' + str(DELTA) + '_x_test.npy', X_test)
-    
-    np.save(OUTPUT_ROOT_NAME + '_' + str(DELTA) + '_y_train.npy', y_train)
-    np.save(OUTPUT_ROOT_NAME + '_' + str(DELTA) + '_y_val.npy', y_val)
-    np.save(OUTPUT_ROOT_NAME + '_' + str(DELTA) + '_y_test.npy', y_test)
-    
-    print "  Formatted data saved"
-    
-def create_store_stratified_datasets(X, y):
-    print "Stratified strategy"
-    
-    # Create the StratifiedShuffleSplit object
-    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=0)
-    # Generate indices for training and testing set
-    # As sss.split() is a generator, we must use next()
-    train_index, test_index = sss.split(X, y).next()
-    
-    # Generate X_train, y_train, X_test and y_test
-    X_train = X[train_index]
-    y_train = y[train_index]
-    X_test = X[test_index]
-    y_test = y[test_index]
-    
-    # Now, generate the validation sets from the training set
-    # For validation set we keep using 20% of the training data
-    train_index, val_index = sss.split(X_train, y_train).next()
-    X_val = X_train[val_index]
-    y_val = y_train[val_index]
-    X_train = X_train[train_index]
-    y_train = y_train[train_index]
-    
-    # Print activity distributions to make sure everything is allright
-    print '  X_train shape:', X_train.shape
-    print '  y_train shape:', y_train.shape
-    y_train_code = np.array([np.argmax(y_train[x]) for x in xrange(len(y_train))])
-    print '  Activity distribution for training:'    
-    print Counter(y_train_code)
-    print '  X_val shape:', X_val.shape
-    print '  y_val shape:', y_val.shape
-    y_val_code = np.array([np.argmax(y_val[x]) for x in xrange(len(y_val))])
-    print '  Activity distribution for training:'    
-    print Counter(y_val_code)
-    print '  X_test shape:', X_test.shape
-    print '  y_test shape:', y_test.shape
-    y_test_code = np.array([np.argmax(y_test[x]) for x in xrange(len(y_test))])
-    print '  Activity distribution for training:'    
-    print Counter(y_test_code)
-    
-    # Save the generated datasets in the corresponding files
-    np.save(OUTPUT_ROOT_NAME + '_stratified_' + str(DELTA) + '_x_train.npy', X_train)
-    np.save(OUTPUT_ROOT_NAME + '_stratified_' + str(DELTA) + '_x_val.npy', X_val)
-    np.save(OUTPUT_ROOT_NAME + '_stratified_' + str(DELTA) + '_x_test.npy', X_test)
-    
-    np.save(OUTPUT_ROOT_NAME + '_stratified_' + str(DELTA) + '_y_train.npy', y_train)
-    np.save(OUTPUT_ROOT_NAME + '_stratified_' + str(DELTA) + '_y_val.npy', y_val)
-    np.save(OUTPUT_ROOT_NAME + '_stratified_' + str(DELTA) + '_y_test.npy', y_test)
-    
-def sum_action_representation(action, model):
-    # Function to represent an action suming the embeddings of constituente words
-    words = action.split('_')
-    embedding = np.zeros(ACTION_DIM) 
-    for word in words:
-        if word != 'to': # word 'to' is not in the model (??)
-            embedding = embedding + model[word]
-    
-    return embedding
-
-
-def avg_action_representation(action, model):
-    # Function to represent an action averaging the embeddings of constituente words
-    words = action.split('_')
-    embedding = np.zeros(ACTION_DIM) 
-    for word in words:
-        if word != 'to': # word 'to' is not in the model (??)
-            embedding = embedding + model[word]
-    
-    embedding = embedding / len(words)
-    return embedding
+def test_data_framing(num_samples, X, y, tokenizer, int_to_activity):
+    print ''
+    print '########################'
+    print 'Testing X and y:'
+    num_samples = 10
+    for i in xrange(num_samples):
+        print 'Test', i
+        sample = random.randint(0, X.shape[0])
+        print 'Sample number:', sample
+        seq = X[sample]
+        print 'Sequence:', seq
+        for element in seq:
+            if int(element) != 0:
+                # 0 is introduced in the padding process, so do not print it
+                print tokenizer.word_index.keys()[tokenizer.word_index.values().index(int(element))],
         
-    
-def build_action_representation(df, model):
-    # Translate actions to neural embeddings depending on the value of variable OP (sum, avg)
-    # For each action we have to separate conforming words split by '_'
-    # translate those words to word vectors using the WORD_MODEL and represent
-    # the final embedding depending on OP
-    # For that purpose, we build a dict where each action name has its n-d embedding 
-    
-
-    # Numpy array with unique actions of the dataset
-    actions = df['action'].unique()
-    
-    # Dict for action-embedding relationship
-    action_dict = {}
-    
-    for action in actions:
-        embedding = np.zeros(ACTION_DIM)
-        if OP == 'sum':
-            embedding = sum_action_representation(action, model)
-        if OP == 'avg':
-            embedding = avg_action_representation(action, model)
-        
-        action_dict[action] = embedding
-        
-    return action_dict
-        
-    
+        print '| Activity: ', int_to_activity[y[sample]]
+        print '.................................'
 
 # Main function
-def main(argv):
+def main(argv):   
     
-    if READ_PREVIOUS_XY == False:
-        # Load dataset from csv file
-        df = pd.read_csv(CSV, parse_dates=[[0, 1]], header=None, sep=' ')        
-        df.columns = ['timestamp', 'sensor', 'action', 'event', 'activity']    
+    # Load dataset from csv file
+    df = pd.read_csv(CSV, parse_dates=[[0, 1]], header=None, sep=' ')        
+    df.columns = ['timestamp', 'sensor', 'action', 'event', 'activity']    
     
-        #df = df[0:1000] # reduce dataset for tests    
-        unique_activities = df['activity'].unique()
-        print "Unique activities:"
-        print unique_activities
+    #df = df[0:1000] # reduce dataset for tests    
+    unique_activities = df['activity'].unique()
+    print "Unique activities:"
+    print unique_activities
 
-        total_activities = len(unique_activities)        
+    total_activities = len(unique_activities)        
     
-        # Generate the dict to transform activities to integer numbers
-        activity_to_int = dict((c, i) for i, c in enumerate(unique_activities))
-        # Generate the dict to transform integer numbers to activities
-        int_to_activity = dict((i, c) for i, c in enumerate(unique_activities))
+    # Generate the dict to transform activities to integer numbers
+    activity_to_int = dict((c, i) for i, c in enumerate(unique_activities))
+    # Generate the dict to transform integer numbers to activities
+    int_to_activity = dict((i, c) for i, c in enumerate(unique_activities))
     
-        # TODO: save those two dicts in a file
-        with open(DATASET+"_activity_to_int.json", 'w') as fp:
-            json.dump(activity_to_int, fp, indent=4)
+    # Save those two dicts in a file
+    with open(DATASET+"/activity_to_int.json", 'w') as fp:
+        json.dump(activity_to_int, fp, indent=4)
         
-        with open(DATASET+"_int_to_activity.json", 'w') as fp:
-            json.dump(int_to_activity, fp, indent=4)        
+    with open(DATASET+"/int_to_activity.json", 'w') as fp:
+        json.dump(int_to_activity, fp, indent=4)       
+          
         
-        print df.head(10)        
+    # Load action_dict, activity_dict and temporal_dict
+    with open(DATASET+'/word_'+OP+'_actions.json') as f:
+        action_dict = json.load(f)
         
-        # Translate actions to neural embeddings depending on the value of variable OP (sum, avg)
-        # For each action we have to separate conforming words split by '_'
-        # translate those words to word vectors using the WORD_MODEL and represent
-        # the final embedding depending on OP
-        # For that purpose, we build a dict where each action name has its n-d embedding
-        # First of all, load WORD_MODEL
-        print "Loading", WORD2VEC_MODEL, "model"
-        model = KeyedVectors.load_word2vec_format(WORD2VEC_MODEL, binary=True)
-        print "Model loaded"
+    with open(DATASET+'/word_'+OP+'_activities.json') as f:
+        activity_dict = json.load(f)
         
-        # action_dict holds a word vector (dependind on OP variable) for each action in df
-        action_dict = build_action_representation(df, model)
-        
-        # TODO: Generate temporal representations
-        # function obtain_day_period(t) returns a day period in TEMPORAL_DICT given a Pandas timestamp
-                
-        # Prepare sequences using action indices
-        # Each action will be an index which will point to an action vector
-        # in the weights matrix of the Embedding layer of the network input
-        # Use 'delta' to establish slicing time; if 0, slicing done on activity type basis    
-        X, y, tokenizer, max_sequence_length = prepare_embeddings(df, activity_to_int, delta=DELTA)
+    with open(DATASET+'/word_'+OP+'_temporal.json') as f:
+        temporal_dict = json.load(f)
+            
+    # Remember that the embeddings in those dictionaries are of type list 
+    # convert them to numpy arrays
+               
+    # Generate temporal representations
+    # function obtain_day_period(t) returns a day period in TEMPORAL_DICT given a Pandas timestamp
+    # we will add a new column to df to store the day period of a given action
+    dayperiods = []
+    for i in df.index:
+        p = obtain_day_period(df.loc[i, 'timestamp'])
+        dayperiods.append(p)
     
-        # Create the embedding matrix for the embedding layer initialization
-        embedding_matrix = create_embedding_matrix(tokenizer)    
+    df['dayperiod'] = dayperiods
     
-        print 'max sequence length:', max_sequence_length
-        print 'X shape:', X.shape
+    print df.head(10)
     
-        print 'embedding matrix shape:', embedding_matrix.shape
+    # Prepare sequences using action indices
+    # Each action will be an index which will point to an action vector
+    # in the weights matrix of the Embedding layer of the network input
+    # Use 'delta' to establish slicing time; if 0, slicing done on activity type basis    
+    X, y_index, y_embedding, tokenizer, max_sequence_length = prepare_embeddings(df, action_dict, activity_dict, temporal_dict, activity_to_int, delta=DELTA)
     
+    # Create the embedding matrix for the embedding layer initialization
+    embedding_matrix = create_embedding_matrix(tokenizer, action_dict, temporal_dict)
     
+    print 'tokenizer:'
+    print tokenizer.word_index
     
-        # Keep original y (with activity indices) before transforming it to categorical
-        y_orig = deepcopy(y)
-        # Tranform class labels to one-hot encoding
-        y = np_utils.to_categorical(y)
-        print 'y shape:', y.shape
+    print 'max sequence length:', max_sequence_length
+    print 'X shape:', X.shape
     
-        # Save X, y and embedding_matrix using numpy serialization
-        np.save(OUTPUT_ROOT_NAME + '_' + str(DELTA) + '_x.npy', X)
-        np.save(OUTPUT_ROOT_NAME + '_' + str(DELTA) + '_y.npy', y)
-        np.save(OUTPUT_ROOT_NAME + '_' + str(DELTA) + '_embedding_weights.npy', embedding_matrix)
-        
-    else:
+    print 'embedding matrix shape:', embedding_matrix.shape    
     
-        X = np.load(PREVIOUS_X)
-        y= np.load(PREVIOUS_Y)
-        # Prepare training, validation and testing datasets
-        # We implement two strategies for this:    
-        # 1: Naive datasets, using only the percentages
-        # This strategy preserves the original sequences and time dependencies
-        # It can be useful for stateful LSTMs
-        #createStoreNaiveDatasets(X, y)
-    
-        # 2: Stratified datasets, making sure all three sets have the same percentage of classes
-        # This strategy may break the time dependencies amongst sequences
-        create_store_stratified_datasets(X, y)
+    # Keep original y (with activity indices) before transforming it to categorical
+    y_orig = deepcopy(y_index)
+    # Tranform class labels to one-hot encoding
+    y_index = np_utils.to_categorical(y_index)
+    y_embedding = np.array(y_embedding)
+    print 'y_index shape:', y_index.shape
+    print 'y_embedding shape:', y_embedding.shape    
     
     
+    # test some samples from X and y to see whether they make sense or not
+    test_data_framing(10, X, y_orig, tokenizer, int_to_activity)        
+    
+    # Save X, y and embedding_matrix using numpy serialization
+    np.save(DATASET + '/' + OUTPUT_ROOT_NAME + '_x.npy', X)
+    np.save(DATASET + '/' + OUTPUT_ROOT_NAME + '_y_index.npy', y_index)
+    np.save(DATASET + '/' + OUTPUT_ROOT_NAME + '_y_embedding.npy', y_embedding)
+    np.save(DATASET + '/' + OUTPUT_ROOT_NAME + '_embedding_weights.npy', embedding_matrix)
     
 if __name__ == "__main__":
    main(sys.argv)

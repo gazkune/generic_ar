@@ -1,0 +1,19 @@
+{
+    "shave": 15, 
+    "take_shower": 14, 
+    "None": 0, 
+    "get_dressed": 8, 
+    "put_clothes_in_washing_machine": 16, 
+    "relax": 4, 
+    "brush_teeth": 6, 
+    "leave_house": 1, 
+    "prepare_dinner": 12, 
+    "go_to_bed": 7, 
+    "use_toilet": 2, 
+    "get_snack": 5, 
+    "get_drink": 3, 
+    "eating": 10, 
+    "take_medication": 13, 
+    "prepare_lunch": 11, 
+    "prepare_breakfast": 9
+}

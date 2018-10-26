@@ -20,9 +20,9 @@ import json
 
 # Directory of datasets
 DIR = '../datasets/'
-DATASET = 'kasterenA'
-# Choose the specific dataset
-CSV = DIR + DATASET + '/kasterenA_groundtruth.csv'
+DATASET = 'kasterenB' # Currently: 'kasterenA', 'kasterenB', 'kasterenC', 'tapia' (this one is empty yet)
+# Choose the specific dataset: '/kasterenA_groundtruth.csv', '/kasterenB_groundtruth.csv', '/kasterenC_groundtruth.csv'
+CSV = DIR + DATASET + '/kasterenB_groundtruth.csv'
 
 # Word2Vec model
 WORD2VEC_MODEL = '../word_models/GoogleNews-vectors-negative300.bin.gz' # d=300
@@ -31,7 +31,7 @@ WORD2VEC_MODEL = '../word_models/GoogleNews-vectors-negative300.bin.gz' # d=300
 ACTION_DIM = 300 # Make coherent with selected WORD2VEC_MODEL
 
 # Options for action representation
-OP = 'sum' # avg is another option
+OP = 'sum' # 'sum' and 'avg' are the current options
 
 # Root name for output files
 OUTPUT_ROOT = 'word_' + OP + '_'
@@ -49,8 +49,11 @@ def sum_action_representation(action, model):
     words = action.split('_')
     embedding = np.zeros(ACTION_DIM) 
     for word in words:
-        if word != 'to': # word 'to' is not in the model (??)
-            embedding = embedding + model[word]
+        if word != 'to' and word != 'pir': # word 'to' is not in the model (??); the word 'pir' has a totally different meaning
+            if word == 'cutlary': # KasterenB contains 'cutlary' when it should be 'cutlery'
+                embedding = embedding + model['cutlery']
+            else:   
+                embedding = embedding + model[word]        
     
     return embedding
 
@@ -60,8 +63,11 @@ def avg_action_representation(action, model):
     words = action.split('_')
     embedding = np.zeros(ACTION_DIM) 
     for word in words:
-        if word != 'to': # word 'to' is not in the model (??)
-            embedding = embedding + model[word]
+        if word != 'to' and word != 'pir': # word 'to' is not in the model (??); the word 'pir' has a totally different meaning
+            if word == 'cutlary': # KasterenB contains 'cutlary' when it should be 'cutlery'
+                embedding = embedding + model['cutlery']
+            else:   
+                embedding = embedding + model[word]
     
     embedding = embedding / len(words)
     return embedding

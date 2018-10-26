@@ -1,0 +1,3 @@
+I had to process Kasteren B by hand. 
+I changed the labels of some activities (see activity_labels.txt)
+I renamed 'frontdor' to 'front_door'
