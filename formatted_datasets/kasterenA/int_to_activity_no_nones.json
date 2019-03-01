@@ -1,0 +1,17 @@
+{
+    "0": "brush_teeth", 
+    "1": "go_to_bed", 
+    "2": "use_toilet", 
+    "3": "prepare_breakfast", 
+    "4": "unload_dishwasher", 
+    "5": "take_shower", 
+    "6": "leave_house", 
+    "7": "store_groceries", 
+    "8": "receive_guest", 
+    "9": "get_drink", 
+    "10": "prepare_dinner", 
+    "11": "get_snack", 
+    "12": "put_items_in_dishwasher", 
+    "13": "put_clothes_in_washing_machine", 
+    "14": "unload_washing_machine"
+}

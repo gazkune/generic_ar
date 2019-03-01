@@ -1,0 +1,18 @@
+{
+    "0": "leave_house", 
+    "1": "use_toilet", 
+    "2": "get_drink", 
+    "3": "relax", 
+    "4": "get_snack", 
+    "5": "brush_teeth", 
+    "6": "go_to_bed", 
+    "7": "get_dressed", 
+    "8": "prepare_breakfast", 
+    "9": "eating", 
+    "10": "prepare_lunch", 
+    "11": "prepare_dinner", 
+    "12": "take_medication", 
+    "13": "take_shower", 
+    "14": "shave", 
+    "15": "put_clothes_in_washing_machine"
+}

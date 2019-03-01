@@ -31,16 +31,16 @@ CSV = DIR + DATASET + '/kasterenC_groundtruth.csv'
 WORD_DIM = 300 # Make coherent with selected WORD2VEC_MODEL
 
 # Option for action representation
-OP = 'avg' # 'sum' and 'avg' are the current options
+OP = 'sum' # 'sum' and 'avg' are the current options
 
 # Option for sequence segmentation using its duration
 DELTA = 60 # size of the sliding window for action segmentation in seconds (Kasteren et al use 60 seconds)
 
 # Option to include (or not) day time period in each of the sequences (ex: [morning, frontdoor, frontdoor])
-DAYTIME = 'no_time' # select between 'no_time' and 'with_time'
+DAYTIME = 'with_time' # select between 'no_time' and 'with_time'
 
 # Option to include (or not) activities of type 'None' 
-NONES = 'no_nones' # select between 'no_nones' and 'with_nones'
+NONES = 'with_nones' # select between 'no_nones' and 'with_nones'
 
 OUTPUT_DIR = DATASET + '/complete/' + DAYTIME + '_' + NONES
 OUTPUT_ROOT_NAME = DATASET + '_' + OP + '_' + str(DELTA) # make coherent with WORD2VEC_MODEL

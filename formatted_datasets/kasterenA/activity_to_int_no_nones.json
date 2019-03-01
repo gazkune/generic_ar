@@ -1,0 +1,17 @@
+{
+    "store_groceries": 7, 
+    "take_shower": 5, 
+    "put_clothes_in_washing_machine": 13, 
+    "leave_house": 6, 
+    "brush_teeth": 0, 
+    "put_items_in_dishwasher": 12, 
+    "unload_dishwasher": 4, 
+    "prepare_dinner": 10, 
+    "go_to_bed": 1, 
+    "use_toilet": 2, 
+    "get_snack": 11, 
+    "unload_washing_machine": 14, 
+    "get_drink": 9, 
+    "receive_guest": 8, 
+    "prepare_breakfast": 3
+}
