@@ -20,9 +20,9 @@ import json
 
 # Directory of datasets
 DIR = '../datasets/'
-DATASET = 'kasterenB' # Currently: 'kasterenA', 'kasterenB', 'kasterenC', 'tapia' (this one is empty yet)
+DATASET = 'kasterenC' # Currently: 'kasterenA', 'kasterenB', 'kasterenC', 'tapia' (this one is empty yet)
 # Choose the specific dataset: '/kasterenA_groundtruth.csv', '/kasterenB_groundtruth.csv', '/kasterenC_groundtruth.csv'
-CSV = DIR + DATASET + '/kasterenB_groundtruth.csv'
+CSV = DIR + DATASET + '/kasterenC_groundtruth.csv'
 
 # Word2Vec model
 WORD2VEC_MODEL = '../word_models/GoogleNews-vectors-negative300.bin.gz' # d=300
@@ -31,7 +31,7 @@ WORD2VEC_MODEL = '../word_models/GoogleNews-vectors-negative300.bin.gz' # d=300
 ACTION_DIM = 300 # Make coherent with selected WORD2VEC_MODEL
 
 # Options for action representation
-OP = 'sum' # 'sum' and 'avg' are the current options
+OP = 'avg' # 'sum' and 'avg' are the current options
 
 # Root name for output files
 OUTPUT_ROOT = 'word_' + OP + '_'
