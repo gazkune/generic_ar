@@ -7,6 +7,7 @@ bleach==1.5.0
 boto==2.43.0
 bz2file==0.98
 certifi==2018.1.18
+chardet==3.0.4
 cycler==0.10.0
 decorator==4.2.1
 enum34==1.1.6
@@ -17,6 +18,7 @@ gensim==3.4.0
 grpcio==1.10.0
 h5py==2.6.0
 html5lib==0.9999999
+idna==2.8
 ipykernel==4.8.0
 ipython==5.5.0
 ipython-genutils==0.2.0
@@ -39,9 +41,9 @@ Pygments==2.2.0
 pyparsing==2.1.9
 python-dateutil==2.5.3
 pytz==2016.6.1
-PyYAML==3.12
+PyYAML==3.13
 pyzmq==16.0.4
-requests==2.11.1
+requests==2.21.0
 scandir==1.6
 scikit-learn==0.19.1
 scipy==1.0.1
@@ -54,5 +56,6 @@ tensorflow-gpu==1.8.0
 termcolor==1.1.0
 tornado==4.5.3
 traitlets==4.3.2
+urllib3==1.24.1
 wcwidth==0.1.7
 Werkzeug==0.14.1
