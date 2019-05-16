@@ -49,12 +49,16 @@ NONES = 'no_nones'
 OP = 'sum'
 # Select the muber of folds in the cross-validation process
 FOLDS = 10
+# Select imbalance data treatment
+TREAT_IMBALANCE = False
 # Select the number of epochs for training
 EPOCHS = 300
 # Select batch size
 BATCH_SIZE = 1024
 # Select dropout value
 DROPOUT = 0.8
+# Select whether intermediate plots and results should be saved
+SAVE = False
 # END CONFIGURATION VARIABLES
 
 # Directory where X, Y and Embedding files are stored
@@ -199,22 +203,27 @@ def main(argv):
         print(model.summary())
         sys.stdout.flush()
         
-        #   3.2: Manage imbalanced data in the training set (SMOTE?)
+        #   3.2: Manage imbalanced data in the training set (SMOTE?) -> Conf option TREAT_IMBALANCE
         # NOTE: We may have a problem with SMOTE, since there are some classes with only 1-3 samples and SMOTE needs n_samples < k_neighbors (~5)
         # NOTE: RandomOverSampler could do the trick, however it generates just copies of current samples
         # TODO: Think about a combination between RandomOverSampler for n_samples < 5 and SMOTE?
         # TODO: First attempt without imbalance management
-        ros = RandomOverSampler(random_state=42)
-        print('Original dataset samples for training %s' % len(y_train_index))
-        print('Original dataset shape for training %s' % Counter(y_train_index))
-        X_train_res, y_train_index_res = ros.fit_resample(X_train, y_train_index)
-        print('Resampled dataset samples for training %s' % len(y_train_index_res))
-        print('Resampled dataset shape for training %s' % Counter(y_train_index_res))
-        y_train_res = []
-        for j in y_train_index_res:
-            y_train_res.append(activity_index_to_embedding[str(y_train_index_res[j])])
-        y_train_res = np.array(y_train_res)
-        print("y_train_res shape: ", y_train_res.shape)        
+        if(TREAT_IMBALANCE == True):
+            ros = RandomOverSampler(random_state=42)
+            print('Original dataset samples for training %s' % len(y_train_index))
+            print('Original dataset shape for training %s' % Counter(y_train_index))
+            X_train_res, y_train_index_res = ros.fit_resample(X_train, y_train_index)
+            print('Resampled dataset samples for training %s' % len(y_train_index_res))
+            print('Resampled dataset shape for training %s' % Counter(y_train_index_res))
+            y_train_res = []
+            for j in y_train_index_res:
+                y_train_res.append(activity_index_to_embedding[str(y_train_index_res[j])])
+            y_train_res = np.array(y_train_res)
+            print("y_train_res shape: ", y_train_res.shape)
+        else:
+            X_train_res = X_train
+            y_train_res = y_train
+
 
         #   3.3: Train the model with the imbalance-corrected training set and use the test set to validate
         print('Training...')        
@@ -227,13 +236,14 @@ def main(argv):
         modelcheckpoint = ModelCheckpoint(weights_file, monitor='val_loss', save_best_only=True, verbose=0)
         callbacks = [modelcheckpoint]
         history = model.fit(X_train_res, y_train_res, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_val, y_val), shuffle=True, callbacks=callbacks)
-        #   3.4: Store the generated learning curves and metrics with the best model (ModelCheckpoint?)
+        #   3.4: Store the generated learning curves and metrics with the best model (ModelCheckpoint?) -> Conf option SAVE
         plot_filename = PLOTS + DATASET + '/' + str(filenumber).zfill(2) + '-' + EXPERIMENT_ID + '-fold' + str(fold)
-        #plot_training_info(['loss'], True, history.history, plot_filename)        
-        utils.plot_training_info(['loss'], True, history.history, plot_filename)
+        #plot_training_info(['loss'], True, history.history, plot_filename)
+        if SAVE == True:
+            utils.plot_training_info(['loss'], True, history.history, plot_filename)
+            print("Plots saved in " + PLOTS + DATASET + '/')
         print("Training finished")
-        print("Plots saved in " + PLOTS + DATASET + '/')
-        
+                
         # Print the best val_loss    
         print('Validation loss:', min(history.history['val_loss']))
         model.load_weights(weights_file)
@@ -242,8 +252,7 @@ def main(argv):
         # Obtain activity labels from embedding predictions
         ypreds = obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_activity)
 
-        # Calculate the metrics
-        # TODO: tidy up the following code!!!        
+        # Calculate the metrics        
         ytrue = np.argmax(y_val_index, axis=1)
         print("ytrue shape: ", ytrue.shape)
         print("ypreds shape: ", ypreds.shape)
@@ -264,44 +273,27 @@ def main(argv):
         np.savetxt(results_file_root+'-cm-normalized.txt', cm_normalized, fmt='%.3f')
         print("Confusion matrices saved in " + RESULTS + DATASET + '/')
         """
-        # Plot non-normalized confusion matrix
-        results_file_root = RESULTS + DATASET + '/' + str(filenumber).zfill(2) + '-' + EXPERIMENT_ID + '-fold' + str(fold)
-        utils.plot_heatmap(ytrue, ypreds, classes=activity_to_int_dict.keys(),
+        # Plot non-normalized confusion matrix -> Conf option SAVE
+        if SAVE == True:
+            results_file_root = RESULTS + DATASET + '/' + str(filenumber).zfill(2) + '-' + EXPERIMENT_ID + '-fold' + str(fold)
+            utils.plot_heatmap(ytrue, ypreds, classes=activity_to_int_dict.keys(),
                               title='Confusion matrix, without normalization, fold ' + str(fold),
                               path=results_file_root + '-cm.png')
 
-        # Plot normalized confusion matrix
-        utils.plot_heatmap(ytrue, ypreds, classes=activity_to_int_dict.keys(), normalize=True,
+            # Plot normalized confusion matrix
+            utils.plot_heatmap(ytrue, ypreds, classes=activity_to_int_dict.keys(), normalize=True,
                               title='Normalized confusion matrix, fold ' + str(fold),
                               path=results_file_root + '-cm-normalized.png')
 
         
         #Dictionary with the values for the metrics (precision, recall and f1)
-        metrics = utils.calculate_evaluation_metrics(ytrue, ypreds)
-        """
-        metrics_per_fold['acc'].append(metrics['acc'])
-        for metric in metric_names:
-            for variant in metric_variants:
-                metrics_per_fold[metric][variant].append(metrics[metric][variant])        
-        """
-        # TODO: Test the following class function
+        metrics = utils.calculate_evaluation_metrics(ytrue, ypreds)        
         metrics_per_fold = utils.update_metrics_per_fold(metrics_per_fold, metrics)
         # Update fold counter
         fold += 1
 
-    # 5: Calculate the mean and std for the metrics obtained for each partition and store
-    # TODO: Test the following class function
-    metrics_per_fold = utils.calculate_aggregate_metrics_per_fold(metrics_per_fold)
-    """
-    metrics_per_fold['mean_acc'] = np.mean(np.array(metrics_per_fold['acc']))
-    metrics_per_fold['std_acc'] = np.std(np.array(metrics_per_fold['acc']))    
-    for metric in metric_names:
-        metrics_per_fold['mean_' + metric] = {}
-        metrics_per_fold['std_' + metric] = {}
-        for variant in metric_variants:
-            metrics_per_fold['mean_' + metric][variant] = np.mean(np.array(metrics_per_fold[metric][variant]))
-            metrics_per_fold['std_' + metric][variant] = np.std(np.array(metrics_per_fold[metric][variant]))
-    """
+    # 5: Calculate the mean and std for the metrics obtained for each partition and store (always)    
+    metrics_per_fold = utils.calculate_aggregate_metrics_per_fold(metrics_per_fold)    
     metrics_filename = RESULTS + DATASET + '/' + str(filenumber).zfill(2) + '-' + EXPERIMENT_ID + '-complete-metrics.json'
     with open(metrics_filename, 'w') as fp:
         json.dump(metrics_per_fold, fp, indent=4)
@@ -390,6 +382,8 @@ def print_configuration_info():
     print("Activity to int mappings:", ACTIVITY_TO_INT)
     print("Int to activity mappings:", INT_TO_ACTIVITY)    
     print("Experiment ID:", EXPERIMENT_ID)
+    print("Treat imbalance data:", TREAT_IMBALANCE)
+    print("Save intermediate plots:", SAVE)
 
 
 if __name__ == "__main__":
