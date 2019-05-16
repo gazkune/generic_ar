@@ -48,9 +48,9 @@ NONES = 'no_nones'
 # Select between 'avg' and 'sum' for action/activity representation
 OP = 'sum'
 # Select the muber of folds in the cross-validation process
-FOLDS = 2 #10
+FOLDS = 10
 # Select the number of epochs for training
-EPOCHS = 10 #300
+EPOCHS = 300
 # Select batch size
 BATCH_SIZE = 1024
 # Select dropout value
@@ -244,9 +244,12 @@ def main(argv):
 
         # Calculate the metrics
         # TODO: tidy up the following code!!!        
-        ytrue = y_val_index
+        ytrue = np.argmax(y_val_index, axis=1)
+        print("ytrue shape: ", ytrue.shape)
+        print("ypreds shape: ", ypreds.shape)
     
-        # Use scikit-learn metrics to calculate confusion matrix, accuracy, precision, recall and F-Measure    
+        # Use scikit-learn metrics to calculate confusion matrix, accuracy, precision, recall and F-Measure
+        """
         cm = confusion_matrix(ytrue, ypreds)
     
         # Normalize the confusion matrix by row (i.e by the number of samples
@@ -260,7 +263,19 @@ def main(argv):
         
         np.savetxt(results_file_root+'-cm-normalized.txt', cm_normalized, fmt='%.3f')
         print("Confusion matrices saved in " + RESULTS + DATASET + '/')
-    
+        """
+        # Plot non-normalized confusion matrix
+        results_file_root = RESULTS + DATASET + '/' + str(filenumber).zfill(2) + '-' + EXPERIMENT_ID + '-fold' + str(fold)
+        utils.plot_heatmap(ytrue, ypreds, classes=activity_to_int_dict.keys(),
+                              title='Confusion matrix, without normalization, fold ' + str(fold),
+                              path=results_file_root + '-cm.png')
+
+        # Plot normalized confusion matrix
+        utils.plot_heatmap(ytrue, ypreds, classes=activity_to_int_dict.keys(), normalize=True,
+                              title='Normalized confusion matrix, fold ' + str(fold),
+                              path=results_file_root + '-cm-normalized.png')
+
+        
         #Dictionary with the values for the metrics (precision, recall and f1)
         metrics = utils.calculate_evaluation_metrics(ytrue, ypreds)
         """
