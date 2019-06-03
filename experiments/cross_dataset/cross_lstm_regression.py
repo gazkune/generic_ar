@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov 30 15:30:52 2018
+Created on Fri May 31 09:56:52 2019
 @author: gazkune
 """
 from __future__ import print_function
@@ -34,21 +34,22 @@ from imblearn.over_sampling import SMOTE, RandomOverSampler
 
 from scipy.spatial import distance
 
+sys.path.append('..')
 from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-DATASET = 'kasterenB' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
-# Directory of formatted datasets
-BASE_INPUT_DIR = '../../formatted_datasets/' + DATASET + '/'
+TRAIN_DATASET = 'kasterenA' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
+TEST_DATASET = 'kasterenB' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
+# Directories of formatted datasets
+TRAIN_BASE_INPUT_DIR = '../../formatted_datasets/' + TRAIN_DATASET + '/'
+TEST_BASE_INPUT_DIR = '../../formatted_datasets/' + TEST_DATASET + '/'
 # Select between 'with_time' and 'no_time'
 DAYTIME = 'with_time'
 # Select between 'with_nones' and 'no_nones'
 NONES = 'no_nones'
 # Select between 'avg' and 'sum' for action/activity representation
 OP = 'sum'
-# Select the muber of folds in the cross-validation process
-FOLDS = 10
 # Select imbalance data treatment
 TREAT_IMBALANCE = False
 # Select the number of epochs for training
@@ -61,26 +62,33 @@ DROPOUT = 0.8
 LOSS = 'cosine_proximity' # 'cosine_proximity' # 'mean_squared_error'
 
 # Select whether intermediate plots and results should be saved
+# TODO: think about plot saving strategies for cross-dataset experiments
 SAVE = False
 # END CONFIGURATION VARIABLES
 
-# Directory where X, Y and Embedding files are stored
-INPUT_DIR = BASE_INPUT_DIR + 'complete/' + DAYTIME + '_' + NONES + '/'
+# Directories where X, Y and Embedding files are stored
+TRAIN_INPUT_DIR = TRAIN_BASE_INPUT_DIR + 'complete/' + DAYTIME + '_' + NONES + '/'
+TEST_INPUT_DIR = TRAIN_BASE_INPUT_DIR + 'complete/' + DAYTIME + '_' + NONES + '/'
 
 # File where the embedding matrix weights are stored to initialize the embedding layer of the network
-EMBEDDING_WEIGHTS = INPUT_DIR + DATASET + '_' + OP + '_60_embedding_weights.npy'
+EMBEDDING_WEIGHTS = TRAIN_INPUT_DIR + TRAIN_DATASET + '_' + OP + '_60_embedding_weights.npy'
 # File where action sequences are stored
-X_FILE = INPUT_DIR + DATASET + '_' + OP + '_60_x.npy'
+X_TRAIN_FILE = TRAIN_INPUT_DIR + TRAIN_DATASET + '_' + OP + '_60_x.npy'
+X_TEST_FILE = TEST_INPUT_DIR + TEST_DATASET + '_' + OP + '_60_x.npy'
 # File where activity labels for the corresponding action sequences are stored in word embedding format (for regression)
-Y_EMB_FILE = INPUT_DIR + DATASET + '_' + OP + '_60_y_embedding.npy'
-Y_INDEX_FILE = INPUT_DIR + DATASET + '_' + OP + '_60_y_index.npy'
-
+Y_TRAIN_EMB_FILE = TRAIN_INPUT_DIR + TRAIN_DATASET + '_' + OP + '_60_y_embedding.npy'
+Y_TRAIN_INDEX_FILE = TRAIN_INPUT_DIR + TRAIN_DATASET + '_' + OP + '_60_y_index.npy'
+Y_TEST_EMB_FILE = TEST_INPUT_DIR + TEST_DATASET + '_' + OP + '_60_y_embedding.npy'
+Y_TEST_INDEX_FILE = TEST_INPUT_DIR + TEST_DATASET + '_' + OP + '_60_y_index.npy'
 
 # To convert the predicted embedding by the regressor to a class we need the json file with that association
-ACTIVITY_EMBEDDINGS = BASE_INPUT_DIR + 'word_' + OP + '_activities.json'
+TRAIN_ACTIVITY_EMBEDDINGS = TRAIN_BASE_INPUT_DIR + 'word_' + OP + '_activities.json'
+TEST_ACTIVITY_EMBEDDINGS = TEST_BASE_INPUT_DIR + 'word_' + OP + '_activities.json'
 # To know the indices of activity names
-ACTIVITY_TO_INT = BASE_INPUT_DIR + 'activity_to_int_' + NONES + '.json'
-INT_TO_ACTIVITY = BASE_INPUT_DIR + 'int_to_activity_' + NONES + '.json'
+TRAIN_ACTIVITY_TO_INT = TRAIN_BASE_INPUT_DIR + 'activity_to_int_' + NONES + '.json'
+TRAIN_INT_TO_ACTIVITY = TRAIN_BASE_INPUT_DIR + 'int_to_activity_' + NONES + '.json'
+TEST_ACTIVITY_TO_INT = TEST_BASE_INPUT_DIR + 'activity_to_int_' + NONES + '.json'
+TEST_INT_TO_ACTIVITY = TEST_BASE_INPUT_DIR + 'int_to_activity_' + NONES + '.json'
 
 # ID for the experiment which is being run -> used to store the files with
 # appropriate naming
@@ -88,7 +96,7 @@ INT_TO_ACTIVITY = BASE_INPUT_DIR + 'int_to_activity_' + NONES + '.json'
 RESULTS = 'results/'
 PLOTS = 'plots/'
 WEIGHTS = 'weights/'
-EXPERIMENT_ID = 'lstm-reg-' + DAYTIME + '-' + NONES
+EXPERIMENT_ID = 'cross_lstm-reg-' + DAYTIME + '-' + NONES + '-' + TRAIN_DATASET + '-' + TEST_DATASET
 
 # File name for best model weights storage
 WEIGHTS_FILE_ROOT = '_lstm-regression-weights.hdf5'   
@@ -111,13 +119,14 @@ def main(argv):
     """
     # 0: Initial steps
     print_configuration_info()        
+    sys.exit()
     # fix random seed for reproducibility
     np.random.seed(7)
     # Make an instance of the class Utils
     utils = Utils()
 
     # Obtain the file number
-    maxnumber = utils.find_file_maxnumber(RESULTS + DATASET + '/')
+    maxnumber = utils.find_file_maxnumber(RESULTS)
     filenumber = maxnumber + 1
     print('file number: ', filenumber)
     
@@ -163,15 +172,6 @@ def main(argv):
     print('features per action:', embedding_matrix.shape[0])
     print('Action max length:', ACTION_MAX_LENGTH)     
 
-    # 2: Generate K partitions of the dataset (KFold cross-validation)        
-    # TODO: Decide between KFold or StratifiedKFold
-    # if StratifiedKFold    
-    skf = StratifiedKFold(n_splits=FOLDS)
-        
-    # if KFold
-    #kf = KFold(n_splits = FOLDS)
-
-    fold = 0
     # 4: For each partition (train, test):
     metrics_per_fold = utils.init_metrics_per_fold()
     
@@ -233,7 +233,7 @@ def main(argv):
         # TODO: Do we need EarlyStopping here?
         #earlystopping = EarlyStopping(monitor='val_loss', patience=100, verbose=0)    
         # TODO: improve file naming for multiple architectures
-        weights_file = WEIGHTS + DATASET + '/' + str(filenumber).zfill(2) + '-' + EXPERIMENT_ID + '-fold' + str(fold) + WEIGHTS_FILE_ROOT
+        weights_file = WEIGHTS + DATASET + '/' + str(filenumber).zfill(2) + '-' + EXPERIMENT_ID + '-' + WEIGHTS_FILE_ROOT
         modelcheckpoint = ModelCheckpoint(weights_file, monitor='val_loss', save_best_only=True, verbose=0)
         callbacks = [modelcheckpoint]
         history = model.fit(X_train_res, y_train_res, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_val, y_val), shuffle=True, callbacks=callbacks)
@@ -369,20 +369,28 @@ def obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_act
 def print_configuration_info():
     """ Dummy function to print configuration parameters expressed as global variables in the script
     """
-    print("Selected dataset:", DATASET)    
-    print("Dataset base directory:", BASE_INPUT_DIR)    
+    print("Selected train dataset:", TRAIN_DATASET)    
+    print("Selected test dataset:", TEST_DATASET)    
+    print("Train dataset base directory:", TRAIN_BASE_INPUT_DIR)
+    print("Test dataset base directory:", TEST_BASE_INPUT_DIR)
     print("Daytime option:", DAYTIME)    
     print("Nones option:", NONES)     
     print("Selected action/activity representation:", OP)
     print("Number of epochs: ", EPOCHS)
     print("Number of folds for cross-validation: ", FOLDS)
-    print("Input directory for data files:", INPUT_DIR)    
+    print("Input directory for train data files:", TRAIN_INPUT_DIR)
+    print("Input directory for test data files:", TEST_INPUT_DIR)
     print("Embedding matrix file:", EMBEDDING_WEIGHTS)
-    print("Action sequences (X) file:", X_FILE)
-    print("Label (y) file:", Y_EMB_FILE)
-    print("Word embedding file for activities:", ACTIVITY_EMBEDDINGS)    
-    print("Activity to int mappings:", ACTIVITY_TO_INT)
-    print("Int to activity mappings:", INT_TO_ACTIVITY)    
+    print("Train action sequences (X) file:", X_TRAIN_FILE)
+    print("Test action sequences (X) file:", X_TEST_FILE)
+    print("Train label (y) file:", Y_TRAIN_EMB_FILE)
+    print("Test label (y) file:", Y_TEST_EMB_FILE)
+    print("Word embedding file for train activities:", TRAIN_ACTIVITY_EMBEDDINGS)    
+    print("Word embedding file for test activities:", TEST_ACTIVITY_EMBEDDINGS)
+    print("Activity to int mappings for training:", TRAIN_ACTIVITY_TO_INT)
+    print("Int to activity mappings for training:", TRAIN_INT_TO_ACTIVITY)
+    print("Activity to int mappings for testing:", TEST_ACTIVITY_TO_INT)
+    print("Int to activity mappings for testing:", TEST_INT_TO_ACTIVITY)
     print("Experiment ID:", EXPERIMENT_ID)
     print("Treat imbalance data:", TREAT_IMBALANCE)
     print("Save intermediate plots:", SAVE)

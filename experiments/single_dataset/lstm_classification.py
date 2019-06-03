@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov 30 15:30:52 2018
+Created on Thu May 30 15:23:52 2019
 @author: gazkune
 """
 from __future__ import print_function
@@ -14,6 +14,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+from keras.utils import np_utils
 from keras.models import Sequential
 from keras.models import model_from_json
 from keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -38,7 +39,7 @@ from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-DATASET = 'kasterenB' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
+DATASET = 'kasterenA' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
 # Directory of formatted datasets
 BASE_INPUT_DIR = '../../formatted_datasets/' + DATASET + '/'
 # Select between 'with_time' and 'no_time'
@@ -50,15 +51,15 @@ OP = 'sum'
 # Select the muber of folds in the cross-validation process
 FOLDS = 10
 # Select imbalance data treatment
-TREAT_IMBALANCE = False
+TREAT_IMBALANCE = True
 # Select the number of epochs for training
 EPOCHS = 300
 # Select batch size
-BATCH_SIZE = 512
+BATCH_SIZE = 256
 # Select dropout value
-DROPOUT = 0.8
+DROPOUT = 0.1
 # Select loss function
-LOSS = 'cosine_proximity' # 'cosine_proximity' # 'mean_squared_error'
+LOSS = 'categorical_crossentropy' # 
 
 # Select whether intermediate plots and results should be saved
 SAVE = False
@@ -72,7 +73,7 @@ EMBEDDING_WEIGHTS = INPUT_DIR + DATASET + '_' + OP + '_60_embedding_weights.npy'
 # File where action sequences are stored
 X_FILE = INPUT_DIR + DATASET + '_' + OP + '_60_x.npy'
 # File where activity labels for the corresponding action sequences are stored in word embedding format (for regression)
-Y_EMB_FILE = INPUT_DIR + DATASET + '_' + OP + '_60_y_embedding.npy'
+#Y_EMB_FILE = INPUT_DIR + DATASET + '_' + OP + '_60_y_embedding.npy'
 Y_INDEX_FILE = INPUT_DIR + DATASET + '_' + OP + '_60_y_index.npy'
 
 
@@ -88,10 +89,10 @@ INT_TO_ACTIVITY = BASE_INPUT_DIR + 'int_to_activity_' + NONES + '.json'
 RESULTS = 'results/'
 PLOTS = 'plots/'
 WEIGHTS = 'weights/'
-EXPERIMENT_ID = 'lstm-reg-' + DAYTIME + '-' + NONES
+EXPERIMENT_ID = 'lstm-class-' + DAYTIME + '-' + NONES
 
 # File name for best model weights storage
-WEIGHTS_FILE_ROOT = '_lstm-regression-weights.hdf5'   
+WEIGHTS_FILE_ROOT = '_lstm-classification-weights.hdf5'   
 
 
 def main(argv):   
@@ -139,7 +140,7 @@ def main(argv):
     # Load embedding matrix, X and y sequences (for y, load both, the embedding and index version)
     embedding_matrix = np.load(EMBEDDING_WEIGHTS)    
     X = np.load(X_FILE)
-    y_emb = np.load(Y_EMB_FILE)
+    #y_emb = np.load(Y_EMB_FILE)
     # We need the following two lines for StratifiedKFold
     y_index_one_hot = np.load(Y_INDEX_FILE) 
     y_index = np.argmax(y_index_one_hot, axis=1)
@@ -154,14 +155,16 @@ def main(argv):
     max_sequence_length = X.shape[1] # TODO: change this to fit the maximum sequence length of all the datasets
     #total_activities = y_train.shape[1]
     ACTION_MAX_LENGTH = embedding_matrix.shape[1]
+    TOTAL_ACTIVITIES = y_index_one_hot.shape[1]
     
-    print('X shape:', X.shape)
-    print('y shape:', y_emb.shape)
+    print('X shape:', X.shape)    
     print('y index shape:', y_index.shape)
     
     print('max sequence length:', max_sequence_length)
     print('features per action:', embedding_matrix.shape[0])
     print('Action max length:', ACTION_MAX_LENGTH)     
+    print('Total activities:', TOTAL_ACTIVITIES)
+    
 
     # 2: Generate K partitions of the dataset (KFold cross-validation)        
     # TODO: Decide between KFold or StratifiedKFold
@@ -179,11 +182,10 @@ def main(argv):
     for train, test in skf.split(X, y_index):
         print("%d Train: %s,  test: %s" % (fold, len(train), len(test)))        
         X_train = X[train]
-        y_train = y_emb[train]
+        y_train = y_index_one_hot[train]
         y_train_index = y_index[train]
         X_val = X[test]
-        y_val = y_emb[test]
-        y_val_index = y_index_one_hot[test]
+        y_val = y_index_one_hot[test]        
         print('Activity distribution %s' % Counter(y_index))        
 
         #   3.1: Build the LSTM model
@@ -196,11 +198,12 @@ def main(argv):
         # Change input shape when using embeddings
         model.add(LSTM(512, return_sequences=False, recurrent_dropout=DROPOUT, dropout=DROPOUT, input_shape=(max_sequence_length, embedding_matrix.shape[1])))    
         # For regression use a linear dense layer with embedding_matrix.shape[1] size (300 in this case)
-        # TODO: consider the need of normalization before calculating the loss (we may use a Lambda layer with L2 norm)
-        model.add(Dense(embedding_matrix.shape[1]))
+        # TODO: consider the need of normalization before calculating the loss (we may use a Lambda layer with L2 norm)        
+        model.add(Dense(TOTAL_ACTIVITIES))
+        model.add(Activation('softmax'))
         # TODO: check different regression losses; cosine_proximity could be the best one for us?        
         #model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mse', 'mae'])
-        model.compile(loss=LOSS, optimizer='adam', metrics=['cosine_proximity', 'mse', 'mae'])
+        model.compile(loss=LOSS, optimizer='adam', metrics=['accuracy', 'mse', 'mae'])
         print('Model built')
         print(model.summary())
         sys.stdout.flush()
@@ -217,10 +220,8 @@ def main(argv):
             X_train_res, y_train_index_res = ros.fit_resample(X_train, y_train_index)
             print('Resampled dataset samples for training %s' % len(y_train_index_res))
             print('Resampled dataset shape for training %s' % Counter(y_train_index_res))
-            y_train_res = []
-            for j in y_train_index_res:
-                y_train_res.append(activity_index_to_embedding[str(y_train_index_res[j])])
-            y_train_res = np.array(y_train_res)
+            y_train_res = np_utils.to_categorical(y_train_index_res)
+            
             print("y_train_res shape: ", y_train_res.shape)
         else:
             X_train_res = X_train
@@ -250,12 +251,11 @@ def main(argv):
         print("Validation loss: " + str(min_val_loss)+ " (epoch " + str(history.history['val_loss'].index(min_val_loss))+")")        
         model.load_weights(weights_file)
         yp = model.predict(X_val, batch_size=BATCH_SIZE, verbose=1)
-        # yp has the embedding predictions of the regressor network
-        # Obtain activity labels from embedding predictions
-        ypreds = obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_activity)
+        # yp has the activity predictions (one-hot vectors)        
+        ypreds = np.argmax(yp, axis=1)
 
         # Calculate the metrics        
-        ytrue = np.argmax(y_val_index, axis=1)
+        ytrue = np.argmax(y_val, axis=1)
         print("ytrue shape: ", ytrue.shape)
         print("ypreds shape: ", ypreds.shape)
     
@@ -302,70 +302,6 @@ def main(argv):
     print("Metrics saved in " + metrics_filename)
     #print(metrics_per_fold)
 
-
-def obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_activity_dict):
-    """Obtains the class predicted from the embeddings using the closest embedding from activity_dict
-            
-    Usage example:    
-        
-    Parameters
-    ----------
-        yp : array, shape = [n_samples, EMBEDDING DIMENSION]
-            Word embeddings predicted by the regressor for given test inputs.
-        
-        activity_dict: dictionary, {class name, word embedding}
-            The word embeddings for the activity classes.
-        
-        activity_to_int_dict: dictionary, {class name, index}
-            The activity index for every activity name in the dataset. 
-        
-        int_to_activity_dict: dictionary, {index, class name}
-            The activity name for every activity index in the dataset. 
-           
-    Returns
-    -------
-        ypreds : array, shape = [n_samples, int]
-            Array with the activity indices obtained from the predictions of the regressor stored in yp    
-    """
-
-    print('Transforming regression predictions to classes')
-
-    # Simple approach: use fors and check one by one
-    
-    def closest_activity(pred, activity_dict):
-        min_dist = 100
-        activity = ""
-        for key in activity_dict:
-            dist = distance.cosine(pred, activity_dict[key])
-            if dist < min_dist: 
-                min_dist = dist
-                activity = key
-        return activity, min_dist
-
-    ypred = []
-    for i in xrange(len(yp)):
-        activity, dist = closest_activity(yp[i], activity_dict)
-        ypred.append(activity_to_int_dict[activity])
-
-    return np.array(ypred)
-    
-    """
-    # Adrian's approach, to be tested
-    # Build [activity_num, action_dim = 300] np.array using activity_dict and activity_to_int    
-    y = np.empty([len(int_to_activity_dict), 300])
-    for i in xrange(y.shape[0]):
-        activity = int_to_activity_dict[str(i)]
-        y[i] = activity_dict[activity]
-
-    #m = K.matmul(yp, K.transpose(y, [1, 0])) -> produces error
-    m = np.matmul(yp, np.transpose(y))
-    # Using this operation we have a [yp.shape[0], activity_num] matrix where each cell is the cosine similarity between a row in yp and an activity
-    # Use ypreds = np.argmax(m, axis=1) to retrieve the column (activity) with the maximum similarity to the prediction in yp
-    ypreds = np.argmax(m, axis=1)
-
-    return ypreds
-    """
-
 def print_configuration_info():
     """ Dummy function to print configuration parameters expressed as global variables in the script
     """
@@ -378,8 +314,7 @@ def print_configuration_info():
     print("Number of folds for cross-validation: ", FOLDS)
     print("Input directory for data files:", INPUT_DIR)    
     print("Embedding matrix file:", EMBEDDING_WEIGHTS)
-    print("Action sequences (X) file:", X_FILE)
-    print("Label (y) file:", Y_EMB_FILE)
+    print("Action sequences (X) file:", X_FILE)    
     print("Word embedding file for activities:", ACTIVITY_EMBEDDINGS)    
     print("Activity to int mappings:", ACTIVITY_TO_INT)
     print("Int to activity mappings:", INT_TO_ACTIVITY)    
