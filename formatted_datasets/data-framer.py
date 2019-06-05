@@ -23,9 +23,9 @@ import random
 
 # Directory of original datasets 
 DIR = '../datasets/'
-DATASET = 'kasterenC'
+DATASET = 'kasterenB'
 # Choose the specific dataset
-CSV = DIR + DATASET + '/kasterenC_groundtruth.csv'
+CSV = DIR + DATASET + '/kasterenB_groundtruth.csv'
 
 # Number of dimensions of an action vector
 WORD_DIM = 300 # Make coherent with selected WORD2VEC_MODEL
@@ -40,7 +40,7 @@ DELTA = 60 # size of the sliding window for action segmentation in seconds (Kast
 DAYTIME = 'with_time' # select between 'no_time' and 'with_time'
 
 # Option to include (or not) activities of type 'None' 
-NONES = 'with_nones' # select between 'no_nones' and 'with_nones'
+NONES = 'no_nones' # select between 'no_nones' and 'with_nones'
 
 OUTPUT_DIR = DATASET + '/complete/' + DAYTIME + '_' + NONES
 OUTPUT_ROOT_NAME = DATASET + '_' + OP + '_' + str(DELTA) # make coherent with WORD2VEC_MODEL
@@ -341,7 +341,7 @@ def main(argv):
     #df = df[0:1000] # reduce dataset for tests
     # Remove None type activities depending on the value of the variable NONES
     if NONES == 'no_nones':
-        df = df.loc[df['activity'] != 'None']
+        df = df.loc[np.logical_and(df['activity'] != 'None', df['activity'] != 'none')]
         df.reset_index(inplace=True, drop=True) 
 
     unique_activities = df['activity'].unique()
