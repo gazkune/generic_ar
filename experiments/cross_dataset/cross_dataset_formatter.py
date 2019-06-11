@@ -30,10 +30,10 @@ class CrossDatasetFormatter:
             self.X_sequences.append(np.load(filename))       
 
         # Load y files (only index)
-        self.y_indices = []
+        self.y_onehot = []
         for dataset in datasets:
             filename = base_input_dir + dataset + '/complete/' + daytime + '_' + nones + '/' + dataset + '_' + op  + '_60_y_index.npy'            
-            self.y_indices.append(np.load(filename))       
+            self.y_onehot.append(np.load(filename))       
 
         # Load embedding files
         self.embedding_weights = []
@@ -66,17 +66,17 @@ class CrossDatasetFormatter:
         1) build_common_activity_to_int_dict
         2) build_common_embedding_matrix
         3) update_x_sequences
-        4) update_y_indices
+        4) update_y_onehot
         5) build common activity name to embedding dict
         """
         print("Reformatting datasets for cross dataset usage")
         self.build_common_activity_to_int_dict()
         self.build_common_embedding_matrix()
         self.update_x_sequences()
-        self.update_y_indices()
+        self.update_y_onehot()
         self.build_common_activity_to_emb()
 
-        return self.X_seq_updated, self.y_indices_updated, self.common_embedding_matrix, self.common_activity_to_int, self.common_int_to_activity, self.activity_index_to_embedding
+        return self.X_seq_updated, self.y_onehot_updated, self.common_embedding_matrix, self.common_activity_to_int, self.common_int_to_activity, self.activity_index_to_embedding
 
 
     def build_common_activity_to_int_dict(self):
@@ -168,14 +168,14 @@ class CrossDatasetFormatter:
                     print(emb)
 
 
-    def update_y_indices(self):
-        """Function to update the y_indices for all datasets, taking into account the common activities found in them
-        NOTE: y_indices are one-hot vectors
+    def update_y_onehot(self):
+        """Function to update the y_onehot for all datasets, taking into account the common activities found in them
+        NOTE: y_onehot are one-hot vectors
         """
         num_classes = len(self.common_activity_to_int.keys())
-        self.y_indices_updated = []
-        for i in range(len(self.y_indices)):
-            y = self.y_indices[i]
+        self.y_onehot_updated = []
+        for i in range(len(self.y_onehot)):
+            y = self.y_onehot[i]
             int_to_activity = self.int_to_activity_dicts[i]
             y_up = []
             for one_hot in y:            
@@ -186,17 +186,17 @@ class CrossDatasetFormatter:
             # TODO: Test the following list comprehension instead of the second for loop
             # y_up = [common_activity_to_int[int_to_activity[index]] for index in y]
             y_up = np.array(y_up) 
-            self.y_indices_updated.append(y_up)
+            self.y_onehot_updated.append(y_up)
     
-        # At this point, all y_up in y_indices_updated are numeric indices of activities -> Convert to categorical
-        for i in range(len(self.y_indices_updated)):
-            self.y_indices_updated[i] = np_utils.to_categorical(self.y_indices_updated[i], num_classes=num_classes)
+        # At this point, all y_up in y_onehot_updated are numeric indices of activities -> Convert to categorical
+        for i in range(len(self.y_onehot_updated)):
+            self.y_onehot_updated[i] = np_utils.to_categorical(self.y_onehot_updated[i], num_classes=num_classes)
 
-    def test_view_y_indices(self):
-        for i in range(len(self.y_indices_updated)):
+    def test_view_y_onehot(self):
+        for i in range(len(self.y_onehot_updated)):
             print("Dataset " + str(i))
-            y_up = self.y_indices_updated[i]
-            y = self.y_indices[i]
+            y_up = self.y_onehot_updated[i]
+            y = self.y_onehot[i]
             sample = random.randint(0, y.shape[0]-1)
             print("Original activity: " + self.int_to_activity_dicts[i][str(np.argmax(y[sample]))])
             print(y[sample])
@@ -258,7 +258,7 @@ def main(argv):
     OP = 'sum'
 
     cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP)
-    X_seq_up, y_indices_up, common_embedding_matrix, common_activity_to_int, common_int_to_activity, common_activity_to_emb = cross_dataset_formatter.reformat_datasets()
+    X_seq_up, y_onehot_up, common_embedding_matrix, common_activity_to_int, common_int_to_activity, common_activity_to_emb = cross_dataset_formatter.reformat_datasets()
     print("View reformatted datasets' information")
     print("Common activity_to_int:")
     print(common_activity_to_int)
@@ -271,7 +271,7 @@ def main(argv):
     cross_dataset_formatter.test_view_x_seq_updated()
     print("--------------------------------------")
     print("Testing y indices")
-    cross_dataset_formatter.test_view_y_indices()
+    cross_dataset_formatter.test_view_y_onehot()
     print("--------------------------------------")
     print("Testing activity to embedding")    
     cross_dataset_formatter.test_view_activity_to_emb(3)
