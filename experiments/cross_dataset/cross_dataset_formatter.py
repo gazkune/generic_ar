@@ -26,48 +26,40 @@ class CrossDatasetFormatter:
         # Load X files
         self.X_sequences = []
         for dataset in datasets:
-            filename = base_input_dir + dataset + '/complete/' + daytime + '_' + nones + '/' + dataset + '_' + op  + '_60_x.npy'
-            print("File name: " + filename)
-            self.X_sequences.append(np.load(filename))        
-    
-        print("X_sequences length: " + str(len(self.X_sequences)))
-        for x in self.X_sequences:
-            print("   X shape: " + str(x.shape))
+            filename = base_input_dir + dataset + '/complete/' + daytime + '_' + nones + '/' + dataset + '_' + op  + '_60_x.npy'            
+            self.X_sequences.append(np.load(filename))       
 
         # Load y files (only index)
         self.y_indices = []
         for dataset in datasets:
-            filename = base_input_dir + dataset + '/complete/' + daytime + '_' + nones + '/' + dataset + '_' + op  + '_60_y_index.npy'
-            print("File name: " + filename)
-            self.y_indices.append(np.load(filename))
-    
-        print("y_indices length: " + str(len(self.y_indices)))
-        for y in self.y_indices:
-            print("   y shape: " + str(y.shape))
+            filename = base_input_dir + dataset + '/complete/' + daytime + '_' + nones + '/' + dataset + '_' + op  + '_60_y_index.npy'            
+            self.y_indices.append(np.load(filename))       
 
         # Load embedding files
         self.embedding_weights = []
         for dataset in datasets:
             filename = base_input_dir + dataset + '/complete/' + daytime + '_' + nones + '/' + dataset + '_' + op  + '_60_embedding_weights.npy'
             print("File name: " + filename)
-            self.embedding_weights.append(np.load(filename))
-
-        print("embedding_weights length: " + str(len(self.embedding_weights)))
-        for e in self.embedding_weights:
-            print("   Embedding matrix shape: " + str(e.shape))
+            self.embedding_weights.append(np.load(filename))       
 
         # Load activity_to_int and int_to_activity files
         self.activity_to_int_dicts = []
         self.int_to_activity_dicts = []
         for dataset in datasets:
             filename_ai = base_input_dir + dataset + '/activity_to_int_' + nones + '.json'
-            filename_ia = base_input_dir + dataset + '/int_to_activity_' + nones + '.json'
-            print("File name activity to int: " + filename_ai)
-            print("File name int to activity: " + filename_ia)
+            filename_ia = base_input_dir + dataset + '/int_to_activity_' + nones + '.json'            
             with open(filename_ai) as f:
                 self.activity_to_int_dicts.append(json.load(f))
             with open(filename_ia) as f:
                 self.int_to_activity_dicts.append(json.load(f))
+
+        # To use oversampling methods in imbalance-learn, we need an activity_index:embedding relation
+        # For that purpose, load individual activity to emb dicts (filenames "word_sum_activities.json")
+        self.activity_to_emb_dicts = []
+        for dataset in datasets:
+            filename = base_input_dir + dataset + '/word_' + op + '_activities.json'
+            with open(filename) as f:
+                self.activity_to_emb_dicts.append(json.load(f))
 
     def reformat_datasets(self):
         """ Function to reformat datasets, which means:
@@ -75,14 +67,16 @@ class CrossDatasetFormatter:
         2) build_common_embedding_matrix
         3) update_x_sequences
         4) update_y_indices
+        5) build common activity name to embedding dict
         """
         print("Reformatting datasets for cross dataset usage")
         self.build_common_activity_to_int_dict()
         self.build_common_embedding_matrix()
         self.update_x_sequences()
         self.update_y_indices()
+        self.build_common_activity_to_emb()
 
-        return self.X_seq_updated, self.y_indices_updated, self.common_embedding_matrix, self.common_activity_to_int, self.common_int_to_activity
+        return self.X_seq_updated, self.y_indices_updated, self.common_embedding_matrix, self.common_activity_to_int, self.common_int_to_activity, self.activity_index_to_embedding
 
 
     def build_common_activity_to_int_dict(self):
@@ -97,10 +91,8 @@ class CrossDatasetFormatter:
                 counter += 1
                 if not key in self.common_activity_to_int:
                     self.common_activity_to_int[key] = index
-                    index += 1
-    
-        print("Original number of activities: " + str(counter))
-        print("Fused number of activities: " + str(index))
+                    index += 1    
+        
         # Now build the int_to_activity dict
         self.common_int_to_activity = {}
         for key in self.common_activity_to_int:
@@ -111,11 +103,8 @@ class CrossDatasetFormatter:
         """Function to fuse all embbeding matrices
         Take into account that all individual embedding matrices have the first element reserved for unknown words (0 vector)
         """
-        self.common_embedding_matrix = self.embedding_weights[0]
-        #print("common embedding matrix shape: ", common_embedding_matrix.shape)
-        for i in range(1, len(self.embedding_weights)):
-           #print("Matrix " + str(i) + " shape: " + str(embedding_weights[i].shape))        
-            #print(embedding_weights[i][0])
+        self.common_embedding_matrix = self.embedding_weights[0]        
+        for i in range(1, len(self.embedding_weights)):           
             self.common_embedding_matrix = np.concatenate((self.common_embedding_matrix, self.embedding_weights[i][1:]), axis=0)
 
     
@@ -129,15 +118,14 @@ class CrossDatasetFormatter:
         self.X_seq_updated = []
         i = 0
         displacement = 0
-        for x in self.X_sequences:
-            print("Iteration " + str(i))
+        for x in self.X_sequences:            
             # Generate a mask for values greater than 0
             boolean_mask = x > 0
             mask = boolean_mask.astype(int)
             # Calculate the displacement using embedding_weights shape        
             if i > 0:            
                 displacement += self.embedding_weights[i-1].shape[0] - 1 # The number of rows - 1
-            print("displacement = " + str(displacement))
+            
             x_updated = x + displacement*mask
             i += 1
             self.X_seq_updated.append(x_updated)
@@ -146,8 +134,7 @@ class CrossDatasetFormatter:
         maxlen = 0
         for x in self.X_sequences:
             maxlen = max(maxlen, x.shape[1])
-    
-        print("max length: " + str(maxlen))
+            
         for i in range(len(self.X_seq_updated)):        
             self.X_seq_updated[i] = pad_sequences(self.X_seq_updated[i], maxlen=maxlen, dtype='float32')
     
@@ -216,6 +203,43 @@ class CrossDatasetFormatter:
             print("Updated activity: " + self.common_int_to_activity[np.argmax(y_up[sample])])
             print(y_up[sample])
 
+    def build_common_activity_to_emb(self):
+        """Function to build a common activity index to embedding dictionary
+        """
+        self.activity_index_to_embedding = {}
+        for ae_dict in self.activity_to_emb_dicts:
+            for key in ae_dict.keys():
+                try:
+                    index = self.common_activity_to_int[key]
+                    if index not in self.activity_index_to_embedding:
+                        self.activity_index_to_embedding[index] = ae_dict[key]
+                    else:
+                        print("Activity " + key + " is already in the dict")
+                except KeyError:
+                    if key.lower() == 'none':
+                        print(key + " activity ignored")
+                    else:
+                        print(key + " activity not in the common activity to int dict. Halting process!")
+                        sys.exit(-1)
+
+    def test_view_activity_to_emb(self, num_samples):
+        for i in range(len(self.activity_to_emb_dicts)):
+            ae_dict = self.activity_to_emb_dicts[i]
+            ai_dict = self.activity_to_int_dicts[i]
+            ia_dict = self.int_to_activity_dicts[i]
+            print("Dataset " + str(i))
+            for j in range(num_samples):
+                sample = random.randint(0, len(ai_dict.keys())-1)
+                activity = ia_dict[str(sample)]
+                orig_emb = ae_dict[activity]
+                new_emb = self.activity_index_to_embedding[self.common_activity_to_int[activity]]
+                print("   Sample " + str(j) + " activity " + activity)
+                print("   Original embedding:")
+                print(orig_emb)
+                print("   New embedding:")
+                print(new_emb)
+        
+
 """
 Main function used to test the functionality of CrossDatasetFormatter class
 """
@@ -234,7 +258,7 @@ def main(argv):
     OP = 'sum'
 
     cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP)
-    X_seq_up, y_indices_up, common_embedding_matrix, common_activity_to_int, common_int_to_activity = cross_dataset_formatter.reformat_datasets()
+    X_seq_up, y_indices_up, common_embedding_matrix, common_activity_to_int, common_int_to_activity, common_activity_to_emb = cross_dataset_formatter.reformat_datasets()
     print("View reformatted datasets' information")
     print("Common activity_to_int:")
     print(common_activity_to_int)
@@ -248,6 +272,10 @@ def main(argv):
     print("--------------------------------------")
     print("Testing y indices")
     cross_dataset_formatter.test_view_y_indices()
+    print("--------------------------------------")
+    print("Testing activity to embedding")    
+    cross_dataset_formatter.test_view_activity_to_emb(3)
+    
 
 if __name__ == "__main__":
    main(sys.argv)
