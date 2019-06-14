@@ -23,6 +23,11 @@ class CrossDatasetFormatter:
     def __init__(self, datasets, base_input_dir, daytime, nones, op):
         """Constructor        
         """
+        self.datasets = datasets
+        self.base_input_dir = base_input_dir
+        self.daytime = daytime
+        self.nones = nones
+        self.op = op
         # Load X files
         self.X_sequences = []
         for dataset in datasets:
@@ -98,6 +103,19 @@ class CrossDatasetFormatter:
         for key in self.common_activity_to_int:
             newkey = self.common_activity_to_int[key]
             self.common_int_to_activity[newkey] = key
+
+    def save_common_activity_int_dicts(self, folder):
+        """Function to save the generated dictionaries in json format
+        """
+        datasets = ""
+        for dataset in self.datasets:
+            datasets = datasets + "_" + dataset
+
+        with open(folder + datasets + "_activity_to_int_"+ self.nones +".json", 'w') as fp:
+            json.dump(self.common_activity_to_int, fp, indent=4)
+        
+        with open(folder + datasets + "_int_to_activity_" + self.nones + ".json", 'w') as fp:
+            json.dump(self.common_int_to_activity, fp, indent=4)                 
 
     def build_common_embedding_matrix(self):
         """Function to fuse all embbeding matrices

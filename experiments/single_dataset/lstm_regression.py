@@ -34,11 +34,12 @@ from imblearn.over_sampling import SMOTE, RandomOverSampler
 
 from scipy.spatial import distance
 
+sys.path.append('..')
 from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-DATASET = 'kasterenB' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
+DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
 # Directory of formatted datasets
 BASE_INPUT_DIR = '../../formatted_datasets/' + DATASET + '/'
 # Select between 'with_time' and 'no_time'
@@ -54,11 +55,15 @@ TREAT_IMBALANCE = False
 # Select the number of epochs for training
 EPOCHS = 300
 # Select batch size
-BATCH_SIZE = 512
+BATCH_SIZE = 1024
 # Select dropout value
-DROPOUT = 0.8
+DROPOUT = 0.7
 # Select loss function
-LOSS = 'cosine_proximity' # 'cosine_proximity' # 'mean_squared_error'
+LOSS = 'cosine_proximity'
+#LOSS = 'mean_squared_error'
+# Select the optimizer
+OPTIMIZER = 'adam' 
+#OPTIMIZER = 'rmsprop'
 
 # Select whether intermediate plots and results should be saved
 SAVE = False
@@ -174,6 +179,7 @@ def main(argv):
     fold = 0
     # 4: For each partition (train, test):
     metrics_per_fold = utils.init_metrics_per_fold()
+    best_epochs = []
     
     #for train, test in kf.split(X):
     for train, test in skf.split(X, y_index):
@@ -200,7 +206,7 @@ def main(argv):
         model.add(Dense(embedding_matrix.shape[1]))
         # TODO: check different regression losses; cosine_proximity could be the best one for us?        
         #model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mse', 'mae'])
-        model.compile(loss=LOSS, optimizer='adam', metrics=['cosine_proximity', 'mse', 'mae'])
+        model.compile(loss=LOSS, optimizer=OPTIMIZER, metrics=['cosine_proximity', 'mse', 'mae'])
         print('Model built')
         print(model.summary())
         sys.stdout.flush()
@@ -247,7 +253,9 @@ def main(argv):
                 
         # Print the best val_loss
         min_val_loss = min(history.history['val_loss'])
-        print("Validation loss: " + str(min_val_loss)+ " (epoch " + str(history.history['val_loss'].index(min_val_loss))+")")        
+        min_val_loss_index = history.history['val_loss'].index(min_val_loss) 
+        print("Validation loss: " + str(min_val_loss)+ " (epoch " + str(history.history['val_loss'].index(min_val_loss))+")")
+        best_epochs.append(min_val_loss_index)
         model.load_weights(weights_file)
         yp = model.predict(X_val, batch_size=BATCH_SIZE, verbose=1)
         # yp has the embedding predictions of the regressor network
@@ -300,6 +308,7 @@ def main(argv):
     with open(metrics_filename, 'w') as fp:
         json.dump(metrics_per_fold, fp, indent=4)
     print("Metrics saved in " + metrics_filename)
+    print("Avg best epoch: " + str(np.mean(best_epochs)) + ", min: " + str(min(best_epochs)) + ", max: " + str(max(best_epochs)))
     #print(metrics_per_fold)
 
 
@@ -388,7 +397,8 @@ def print_configuration_info():
     print("Save intermediate plots:", SAVE)
     print("Batch size:", BATCH_SIZE)
     print("Dropout:", DROPOUT)
-    print("Loss:", LOSS)    
+    print("Loss:", LOSS)
+    print("Optimizer:", OPTIMIZER)
 
 
 if __name__ == "__main__":

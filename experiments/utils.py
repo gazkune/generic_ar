@@ -50,13 +50,16 @@ class Utils:
         plt.figure(figsize=None)
         # summarize history for accuracy
         if 'accuracy' in metrics:
-        
+            leg = ['train']
             plt.plot(history['acc'])
-            plt.plot(history['val_acc'])
+            if 'val_acc' in history:
+                plt.plot(history['val_acc'])
+                leg.append('val')
+
             plt.title('model accuracy')
             plt.ylabel('accuracy')
             plt.xlabel('epoch')
-            lgd = plt.legend(['train', 'val'], bbox_to_anchor=(1.04,1), loc="upper left")
+            lgd = plt.legend(leg, bbox_to_anchor=(1.04,1), loc="upper left")
             if save == True:
                 plt.savefig(filename + '-accuracy.png', bbox_extra_artists=(lgd,), bbox_inches='tight')
                 plt.gcf().clear()
@@ -65,8 +68,12 @@ class Utils:
 
         # summarize history for loss
         if 'loss' in metrics:
+            leg = ['train']
             plt.plot(history['loss'])
-            plt.plot(history['val_loss'])
+            if 'val_loss' in history:
+                plt.plot(history['val_loss'])
+                leg.append('val')
+                
             plt.title('model loss')
             plt.ylabel('loss')
             plt.xlabel('epoch')
@@ -116,9 +123,36 @@ class Utils:
             metric_results['precision'][t] = metrics.precision_score(y_gt, y_preds, average = t)
             metric_results['recall'][t] = metrics.recall_score(y_gt, y_preds, average = t)
             metric_results['f1'][t] = metrics.f1_score(y_gt, y_preds, average = t)
-            metric_results['acc'] = metrics.accuracy_score(y_gt, y_preds) 
+        
+        metric_results['acc'] = metrics.accuracy_score(y_gt, y_preds) 
                 
         return metric_results
+
+    def calculate_accuracy_at_k(self, y_gt, y_preds, k):
+        """Function to calculate top k accuracy or accuracy at k
+        Parameters
+        ----------
+            y_gt : array, shape = [n_samples]
+                Classes that appear in the ground truth.
+        
+            y_preds: array, shape = [m_samples, n_samples]
+                Predicted classes (m per test sample, where m >= k). Take into account that they must follow the same
+                order as in y_ground_truth
+           
+        Returns
+        -------
+            accuracy : float
+                A float between 0-1 with the top k accuracy
+        """
+        kpreds = y_preds[:, :k] # Use only the first k columns of y_preds
+        hits = 0
+        for i in range(len(y_gt)):
+            if y_gt[i] in kpreds[i]:
+                hits += 1
+        
+        return float(hits)/float(len(y_gt))
+
+
 
     def init_metrics_per_fold(self):
         """Function to initialize a dictionary to store all the metrics per fold in a cross-validation process
@@ -259,6 +293,7 @@ class Utils:
 
         # Compute confusion matrix
         cm = confusion_matrix(y_true, y_pred)
+        print("Utils: ypred unique values: " + str(np.unique(y_pred)))
         # Only use the labels that appear in the data        
         classes = np.array(classes)        
         classes = classes[unique_labels(y_true, y_pred)]
