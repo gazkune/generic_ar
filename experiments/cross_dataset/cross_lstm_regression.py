@@ -56,13 +56,15 @@ OP = 'sum'
 # Select imbalance data treatment
 TREAT_IMBALANCE = False
 # Select the number of epochs for training
-EPOCHS = 1
+EPOCHS = 20
 # Select batch size
 BATCH_SIZE = 512
 # Select dropout value
 DROPOUT = 0.8
 # Select loss function
 LOSS = 'cosine_proximity' # 'cosine_proximity' # 'mean_squared_error'
+# Select the number of predictions to calculate
+N_PREDS = 5
 # END CONFIGURATION VARIABLES
 
 
@@ -106,6 +108,8 @@ def main(argv):
     print('Loading and formatting data')
     cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP)
     X_seq_up, y_onehot_up, common_embedding_matrix, common_activity_to_int, common_int_to_activity, common_activity_to_emb = cross_dataset_formatter.reformat_datasets()
+    cross_dataset_formatter.save_common_activity_int_dicts("cross_activity_int/")
+    
     # Common data structures
     print("---------------------------------")
     print("Common data structures info:")
@@ -222,53 +226,61 @@ def main(argv):
     # TODO: Do we need EarlyStopping here?
     #earlystopping = EarlyStopping(monitor='val_loss', patience=100, verbose=0)    
     # TODO: improve file naming for multiple architectures
-    weights_file = WEIGHTS + str(filenumber).zfill(2) + '-' + EXPERIMENT_ID + '-' + WEIGHTS_FILE_ROOT
-    modelcheckpoint = ModelCheckpoint(weights_file, monitor='val_loss', save_best_only=True, verbose=0)
+    weights_file = WEIGHTS + str(filenumber).zfill(2) + '-' + EXPERIMENT_ID + WEIGHTS_FILE_ROOT
+    modelcheckpoint = ModelCheckpoint(weights_file, monitor='loss', save_best_only=True, verbose=0)
     callbacks = [modelcheckpoint]
-    history = model.fit(X_train_res, y_train_res, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_test, y_test_emb), shuffle=True, callbacks=callbacks)
-    #history = model.fit(X_train_res, y_train_res, batch_size=BATCH_SIZE, epochs=EPOCHS, shuffle=True)
+    history = model.fit(X_train_res, y_train_res, batch_size=BATCH_SIZE, epochs=EPOCHS, shuffle=True, callbacks=callbacks)   
     
     # 5: Store the generated learning curves and metrics with the best model (ModelCheckpoint?) -> Conf option SAVE
     plot_filename = PLOTS + str(filenumber).zfill(2) + '-' + TRAIN_DATASET + '-' + TEST_DATASET + '-' + EXPERIMENT_ID    
     utils.plot_training_info(['loss'], True, history.history, plot_filename)
     print("Plots saved in " + PLOTS)
     
-    print("Training finished")
+    print("Training finished")    
     
-    # Print the best val_loss
-    min_val_loss = min(history.history['val_loss'])
-    print("Validation loss: " + str(min_val_loss)+ " (epoch " + str(history.history['val_loss'].index(min_val_loss))+")")        
     model.load_weights(weights_file)
     yp = model.predict(X_test, batch_size=BATCH_SIZE, verbose=1)
     # yp has the embedding predictions of the regressor network
-    # Obtain activity labels from embedding predictions
-    #ypreds = obtain_class_predictions(yp, activity_dict_test, activity_to_int_dict_test, int_to_activity_test)
-    ypreds = obtain_class_predictions(yp, cross_dataset_formatter.activity_to_emb_dicts[1], 
-                                        cross_dataset_formatter.common_activity_to_int, cross_dataset_formatter.common_int_to_activity)
+    # Obtain activity labels from embedding predictions    
+    ypreds = obtain_class_predictions(yp, cross_dataset_formatter.activity_to_emb_dicts[1], cross_dataset_formatter.common_activity_to_int,
+                                        cross_dataset_formatter.common_int_to_activity, N_PREDS) 
 
     # Calculate the metrics        
     ytrue = y_test_index
     print("ytrue shape: ", ytrue.shape)
     print("ypreds shape: ", ypreds.shape)    
     
+    ypreds1 = ypreds[:, 0]
     # Plot non-normalized confusion matrix -> Conf option SAVE
     
     results_file_root = RESULTS + str(filenumber).zfill(2) + '-' + TRAIN_DATASET + '-' + TEST_DATASET + '-' + EXPERIMENT_ID
-    labels = cross_dataset_formatter.common_activity_to_int.keys()
+    labels = []
+    for i in cross_dataset_formatter.common_int_to_activity:
+        labels.append(cross_dataset_formatter.common_int_to_activity[i])
     print("Classes for the heatmap (" + str(len(labels)) + ")")
     print(labels)
-    utils.plot_heatmap(ytrue, ypreds, classes=labels,
+    utils.plot_heatmap(ytrue, ypreds1, classes=labels,
                        title='Confusion matrix, without normalization: ' + TRAIN_DATASET + '-' + TEST_DATASET,
                        path=results_file_root + '-cm.png')
 
     # Plot normalized confusion matrix
-    utils.plot_heatmap(ytrue, ypreds, classes=labels, normalize=True,
+    utils.plot_heatmap(ytrue, ypreds1, classes=labels, normalize=True,
                        title='Normalized confusion matrix: ' + TRAIN_DATASET + '-' + TEST_DATASET,
                        path=results_file_root + '-cm-normalized.png')
 
         
     #Dictionary with the values for the metrics (precision, recall and f1)
-    metrics = utils.calculate_evaluation_metrics(ytrue, ypreds)           
+    metrics = utils.calculate_evaluation_metrics(ytrue, ypreds1)
+    # Calculate top-k accuracy (k=3 and k=5)
+    k = 3
+    acc_at_k = utils.calculate_accuracy_at_k(ytrue, ypreds, k)
+    key = "acc_at_" + str(k)
+    metrics[key] = acc_at_k
+    k = 5
+    acc_at_k = utils.calculate_accuracy_at_k(ytrue, ypreds, k)
+    key = "acc_at_" + str(k)
+    metrics[key] = acc_at_k
+
     metrics_filename = RESULTS + str(filenumber).zfill(2) + '-' + TRAIN_DATASET + '-' + TEST_DATASET + '-' + EXPERIMENT_ID + '-complete-metrics.json'
     with open(metrics_filename, 'w') as fp:
         json.dump(metrics, fp, indent=4)
@@ -277,7 +289,7 @@ def main(argv):
 
 
 
-def obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_activity_dict):
+def obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_activity_dict, k=1):
     """Obtains the class predicted from the embeddings using the closest embedding from activity_dict
             
     Usage example:    
@@ -295,19 +307,23 @@ def obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_act
         
         int_to_activity_dict: dictionary, {index, class name}
             The activity name for every activity index in the dataset. 
+        k: int
+            How many predictions per sample
            
     Returns
     -------
-        ypreds : array, shape = [n_samples, int]
-            Array with the activity indices obtained from the predictions of the regressor stored in yp    
+        ypreds : array, shape = [n_samples, k]
+            Array with the k activity indices obtained from the predictions of the regressor stored in yp    
     """
+    # TODO: Update predicted activity indices respect to common_activity_to_int
+    # NOTE: It seems it is already done.
 
     print('Transforming regression predictions to classes')
 
     # Simple approach: use fors and check one by one
     
     def closest_activity(pred, activity_dict):
-        min_dist = 100
+        min_dist = 100.0
         activity = ""
         for key in activity_dict:
             dist = distance.cosine(pred, activity_dict[key])
@@ -315,13 +331,42 @@ def obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_act
                 min_dist = dist
                 activity = key
         return activity, min_dist
+    
+    def closest_k_activities(pred, activity_dict, k):
+        activities = [""]*k # Build an array of empty activity names (strings)
+        min_dists = np.full(k, 100.0) # Build an array of distances
+        for key in activity_dict:
+            dist = distance.cosine(pred, activity_dict[key])
+            i = 0
+            inserted = False
+            while i < k and not inserted:
+                if dist < min_dists[i]:
+                    activities[i] = key
+                    min_dists[i] = dist
+                    inserted = True
+
+                i += 1
+
+        return activities, min_dists
 
     ypred = []
-    for i in range(len(yp)):
-        activity, dist = closest_activity(yp[i], activity_dict)
-        ypred.append(activity_to_int_dict[activity])
+    for i in range(len(yp)):        
+        activities, dists = closest_k_activities(yp[i], activity_dict, k)        
+        acti_indices = np.full(len(activities), -1)
+        i = 0
+        for act_name in activities:
+            acti_indices[i] = activity_to_int_dict[act_name]
+            i += 1     
 
-    return np.array(ypred)
+        ypred.append(acti_indices)        
+        
+    ypred = np.array(ypred)    
+    unique_act_indices = np.unique(ypred)
+    #unique_act_names = [int_to_activity_dict[str(x)] for x in unique_act_indices]
+    print("Predicted unique activities:")
+    print(unique_act_indices)    
+
+    return ypred
     
     """
     # Adrian's approach, to be tested
@@ -354,7 +399,9 @@ def print_configuration_info():
     print("Treat imbalance data:", TREAT_IMBALANCE)    
     print("Batch size:", BATCH_SIZE)
     print("Dropout:", DROPOUT)
-    print("Loss:", LOSS)    
+    print("Loss:", LOSS)
+    print("Number of predictions:", N_PREDS)
+
 
 
 if __name__ == "__main__":
