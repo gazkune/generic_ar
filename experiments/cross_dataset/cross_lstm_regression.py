@@ -42,7 +42,7 @@ from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-TRAIN_DATASET = 'kasterenA' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
+TRAIN_DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
 TEST_DATASET = 'kasterenB' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
 DATASETS = [TRAIN_DATASET, TEST_DATASET]
 # Directories of formatted datasets
@@ -56,11 +56,11 @@ OP = 'sum'
 # Select imbalance data treatment
 TREAT_IMBALANCE = False
 # Select the number of epochs for training
-EPOCHS = 20
+EPOCHS = 148
 # Select batch size
-BATCH_SIZE = 512
+BATCH_SIZE = 1024
 # Select dropout value
-DROPOUT = 0.8
+DROPOUT = 0.7
 # Select loss function
 LOSS = 'cosine_proximity' # 'cosine_proximity' # 'mean_squared_error'
 # Select the number of predictions to calculate
@@ -109,6 +109,9 @@ def main(argv):
     cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP)
     X_seq_up, y_onehot_up, common_embedding_matrix, common_activity_to_int, common_int_to_activity, common_activity_to_emb = cross_dataset_formatter.reformat_datasets()
     cross_dataset_formatter.save_common_activity_int_dicts("cross_activity_int/")
+    #print("Comon activity to embedding indices:")
+    #print(common_activity_to_emb.keys())
+    #sys.exit()
     
     # Common data structures
     print("---------------------------------")
@@ -211,7 +214,7 @@ def main(argv):
         print('Resampled dataset shape for training %s' % Counter(y_train_index_res))
         y_train_res = []
         for j in y_train_index_res:
-            y_train_res.append(common_activity_to_emb[str(y_train_index_res[j])])
+            y_train_res.append(common_activity_to_emb[y_train_index_res[j]])
         y_train_res = np.array(y_train_res)
         print("y_train_res shape: ", y_train_res.shape)
     else:
@@ -314,9 +317,7 @@ def obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_act
     -------
         ypreds : array, shape = [n_samples, k]
             Array with the k activity indices obtained from the predictions of the regressor stored in yp    
-    """
-    # TODO: Update predicted activity indices respect to common_activity_to_int
-    # NOTE: It seems it is already done.
+    """    
 
     print('Transforming regression predictions to classes')
 
@@ -333,17 +334,22 @@ def obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_act
         return activity, min_dist
     
     def closest_k_activities(pred, activity_dict, k):
-        activities = [""]*k # Build an array of empty activity names (strings)
-        min_dists = np.full(k, 100.0) # Build an array of distances
-        for key in activity_dict:
+        activities = ["!!!"]*k # Build an array of empty activity names (strings)
+        min_dists = [1000000.0]*k # Build an array of distances
+        for key in activity_dict: # TODO: Ignore 'None' activities that are in activity_dict (if 'no_nones')
             dist = distance.cosine(pred, activity_dict[key])
             i = 0
             inserted = False
             while i < k and not inserted:
                 if dist < min_dists[i]:
-                    activities[i] = key
-                    min_dists[i] = dist
-                    inserted = True
+                    activities.insert(i, key) # The other activities are displaced
+                    min_dists.insert(i, dist)
+                    # Remove the last element of the lists
+                    activities.pop(-1)
+                    min_dists.pop(-1)
+                    #activities[i] = key
+                    #min_dists[i] = dist
+                    inserted = True                    
 
                 i += 1
 
@@ -355,7 +361,12 @@ def obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_act
         acti_indices = np.full(len(activities), -1)
         i = 0
         for act_name in activities:
-            acti_indices[i] = activity_to_int_dict[act_name]
+            try:
+                acti_indices[i] = activity_to_int_dict[act_name]
+            except KeyError:
+                print("Activities: " + str(activities))
+                sys.exit()
+            
             i += 1     
 
         ypred.append(acti_indices)        
