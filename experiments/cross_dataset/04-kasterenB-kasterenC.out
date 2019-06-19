@@ -1,0 +1,1564 @@
+Using TensorFlow backend.
+Selected train dataset: kasterenB
+Selected test dataset: kasterenC
+Dataset base directory: ../../formatted_datasets/
+Daytime option: with_time
+Nones option: no_nones
+Selected action/activity representation: sum
+Number of epochs:  235
+Experiment ID: cross_lstm-reg-with_time-no_nones-kasterenB-kasterenC
+Treat imbalance data: False
+Batch size: 512
+Dropout: 0.8
+Loss: cosine_proximity
+Number of predictions: 5
+file number:  4
+Loading and formatting data
+File name: ../../formatted_datasets/kasterenB/complete/with_time_no_nones/kasterenB_sum_60_embedding_weights.npy
+File name: ../../formatted_datasets/kasterenC/complete/with_time_no_nones/kasterenC_sum_60_embedding_weights.npy
+Reformatting datasets for cross dataset usage
+none activity ignored
+Activity take_shower is already in the dict
+None activity ignored
+Activity get_dressed is already in the dict
+Activity brush_teeth is already in the dict
+Activity leave_house is already in the dict
+Activity prepare_dinner is already in the dict
+Activity go_to_bed is already in the dict
+Activity use_toilet is already in the dict
+Activity get_drink is already in the dict
+---------------------------------
+Common data structures info:
+Embedding matrices:
+   Embedding matrix shape for training: (27, 300)
+   Embedding matrix shape for testing: (25, 300)
+   Common embedding matrix shape: (51, 300)
+Activity to int:
+   Activities in training: 23
+   Activities in testing: 16
+   Common activities: 31
+File name for y embedding (train): ../../formatted_datasets/kasterenB/complete/with_time_no_nones/kasterenB_sum_60_y_embedding.npy
+File name for y embedding (test): ../../formatted_datasets/kasterenC/complete/with_time_no_nones/kasterenC_sum_60_y_embedding.npy
+X sequences:
+   X train shape: (1760, 31)
+   X test shape: (2732, 31)
+y labels:
+   y train embedding shape: (1760, 300)
+   y test embedding shape: (2732, 300)
+   y train one hot shape: (1760, 31)
+   y test one hot shape: (2732, 31)
+   y train index shape: (1760,)
+   y test index shape: (2732,)
+max sequence length (train, test): 31, 31
+features per action: 51
+Action max length: 300
+Activity distribution for training:
+{u'answering_phone': 6,
+ u'brush_teeth': 24,
+ u'drop_dish': 2,
+ u'eat_brunch': 1,
+ u'eat_dinner': 8,
+ u'faster_kitchen_camera': 6,
+ u'get_dressed': 18,
+ u'get_drink': 9,
+ u'go_to_bed': 893,
+ u'install_sensor': 45,
+ u'leave_house': 333,
+ u'on_phone': 1,
+ u'play_piano': 78,
+ u'prepare_brunch': 52,
+ u'prepare_dinner': 72,
+ u'prepare_for_leaving': 14,
+ u'search_keys': 7,
+ u'setting_up_sensors': 18,
+ u'shaving': 6,
+ u'take_shower': 107,
+ u'unpacking': 12,
+ u'use_toilet': 27,
+ u'wash_dishes': 21}
+Activity distribution for testing:
+{u'brush_teeth': 55,
+ u'eating': 60,
+ u'get_dressed': 41,
+ u'get_drink': 7,
+ u'get_snack': 9,
+ u'go_to_bed': 1961,
+ u'leave_house': 121,
+ u'prepare_breakfast': 34,
+ u'prepare_dinner': 109,
+ u'prepare_lunch': 27,
+ u'put_clothes_in_washing_machine': 6,
+ u'relax': 131,
+ u'shave': 32,
+ u'take_medication': 3,
+ u'take_shower': 86,
+ u'use_toilet': 50}
+Building model...
+WARNING:tensorflow:From /home/gazkune/.virtualenvs/generic-ar/local/lib/python2.7/site-packages/tensorflow/python/framework/op_def_library.py:263: colocate_with (from tensorflow.python.framework.ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Colocations handled automatically by placer.
+2019-06-17 16:52:06.331105: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
+2019-06-17 16:52:06.522777: I tensorflow/compiler/xla/service/service.cc:150] XLA service 0x5d9dbc0 executing computations on platform CUDA. Devices:
+2019-06-17 16:52:06.522860: I tensorflow/compiler/xla/service/service.cc:158]   StreamExecutor device (0): TITAN V, Compute Capability 7.0
+2019-06-17 16:52:06.548030: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 2800000000 Hz
+2019-06-17 16:52:06.550877: I tensorflow/compiler/xla/service/service.cc:150] XLA service 0x5e8c810 executing computations on platform Host. Devices:
+2019-06-17 16:52:06.550973: I tensorflow/compiler/xla/service/service.cc:158]   StreamExecutor device (0): <undefined>, <undefined>
+2019-06-17 16:52:06.552085: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1433] Found device 0 with properties: 
+name: TITAN V major: 7 minor: 0 memoryClockRate(GHz): 1.455
+pciBusID: 0000:21:00.0
+totalMemory: 11.75GiB freeMemory: 11.40GiB
+2019-06-17 16:52:06.552167: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1512] Adding visible gpu devices: 0
+2019-06-17 16:52:06.554186: I tensorflow/core/common_runtime/gpu/gpu_device.cc:984] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-06-17 16:52:06.554221: I tensorflow/core/common_runtime/gpu/gpu_device.cc:990]      0 
+2019-06-17 16:52:06.554236: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1003] 0:   N 
+2019-06-17 16:52:06.555110: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 11090 MB memory) -> physical GPU (device: 0, name: TITAN V, pci bus id: 0000:21:00.0, compute capability: 7.0)
+WARNING:tensorflow:From /home/gazkune/.virtualenvs/generic-ar/local/lib/python2.7/site-packages/keras/backend/tensorflow_backend.py:3138: calling dropout (from tensorflow.python.ops.nn_ops) with keep_prob is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `rate` instead of `keep_prob`. Rate should be set to `rate = 1 - keep_prob`.
+Model built
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_1 (Embedding)      (None, 31, 300)           15300     
+_________________________________________________________________
+lstm_1 (LSTM)                (None, 512)               1665024   
+_________________________________________________________________
+dense_1 (Dense)              (None, 300)               153900    
+=================================================================
+Total params: 1,834,224
+Trainable params: 1,818,924
+Non-trainable params: 15,300
+_________________________________________________________________
+None
+Training...
+WARNING:tensorflow:From /home/gazkune/.virtualenvs/generic-ar/local/lib/python2.7/site-packages/tensorflow/python/ops/math_ops.py:3066: to_int32 (from tensorflow.python.ops.math_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.cast instead.
+2019-06-17 16:52:10.902930: I tensorflow/stream_executor/dso_loader.cc:152] successfully opened CUDA library libcublas.so.10.0 locally
+Epoch 1/235
+
+ 512/1760 [=======>......................] - ETA: 4s - loss: -0.0055 - cosine_proximity: -0.0055 - mean_squared_error: 0.0714 - mean_absolute_error: 0.2110
+1024/1760 [================>.............] - ETA: 1s - loss: -0.1211 - cosine_proximity: -0.1211 - mean_squared_error: 0.0657 - mean_absolute_error: 0.2017
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.2219 - cosine_proximity: -0.2219 - mean_squared_error: 0.0614 - mean_absolute_error: 0.1940
+1760/1760 [==============================] - 2s 1ms/step - loss: -0.2648 - cosine_proximity: -0.2648 - mean_squared_error: 0.0601 - mean_absolute_error: 0.1913
+Epoch 2/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.6506 - cosine_proximity: -0.6506 - mean_squared_error: 0.0690 - mean_absolute_error: 0.1958
+1024/1760 [================>.............] - ETA: 0s - loss: -0.6730 - cosine_proximity: -0.6730 - mean_squared_error: 0.0887 - mean_absolute_error: 0.2194
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.6897 - cosine_proximity: -0.6897 - mean_squared_error: 0.1200 - mean_absolute_error: 0.2552
+1760/1760 [==============================] - 0s 143us/step - loss: -0.6953 - cosine_proximity: -0.6953 - mean_squared_error: 0.1384 - mean_absolute_error: 0.2738
+Epoch 3/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.7289 - cosine_proximity: -0.7289 - mean_squared_error: 0.3901 - mean_absolute_error: 0.4997
+1024/1760 [================>.............] - ETA: 0s - loss: -0.7405 - cosine_proximity: -0.7405 - mean_squared_error: 0.4509 - mean_absolute_error: 0.5368
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.7448 - cosine_proximity: -0.7448 - mean_squared_error: 0.4947 - mean_absolute_error: 0.5605
+1760/1760 [==============================] - 0s 148us/step - loss: -0.7460 - cosine_proximity: -0.7460 - mean_squared_error: 0.5134 - mean_absolute_error: 0.5697
+Epoch 4/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.7611 - cosine_proximity: -0.7611 - mean_squared_error: 0.6905 - mean_absolute_error: 0.6501
+1024/1760 [================>.............] - ETA: 0s - loss: -0.7557 - cosine_proximity: -0.7557 - mean_squared_error: 0.7013 - mean_absolute_error: 0.6521
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.7564 - cosine_proximity: -0.7564 - mean_squared_error: 0.7075 - mean_absolute_error: 0.6535
+1760/1760 [==============================] - 0s 142us/step - loss: -0.7555 - cosine_proximity: -0.7555 - mean_squared_error: 0.7095 - mean_absolute_error: 0.6534
+Epoch 5/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.7748 - cosine_proximity: -0.7748 - mean_squared_error: 0.6292 - mean_absolute_error: 0.5997
+1024/1760 [================>.............] - ETA: 0s - loss: -0.7682 - cosine_proximity: -0.7682 - mean_squared_error: 0.6045 - mean_absolute_error: 0.5863
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.7706 - cosine_proximity: -0.7706 - mean_squared_error: 0.5818 - mean_absolute_error: 0.5737
+1760/1760 [==============================] - 0s 155us/step - loss: -0.7736 - cosine_proximity: -0.7736 - mean_squared_error: 0.5788 - mean_absolute_error: 0.5726
+Epoch 6/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.7797 - cosine_proximity: -0.7797 - mean_squared_error: 0.4681 - mean_absolute_error: 0.5088
+1024/1760 [================>.............] - ETA: 0s - loss: -0.7848 - cosine_proximity: -0.7848 - mean_squared_error: 0.4771 - mean_absolute_error: 0.5172
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.7880 - cosine_proximity: -0.7880 - mean_squared_error: 0.4770 - mean_absolute_error: 0.5178
+1760/1760 [==============================] - 0s 139us/step - loss: -0.7916 - cosine_proximity: -0.7916 - mean_squared_error: 0.4754 - mean_absolute_error: 0.5166
+Epoch 7/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.7863 - cosine_proximity: -0.7863 - mean_squared_error: 0.4884 - mean_absolute_error: 0.5243
+1024/1760 [================>.............] - ETA: 0s - loss: -0.7950 - cosine_proximity: -0.7950 - mean_squared_error: 0.4762 - mean_absolute_error: 0.5162
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.7956 - cosine_proximity: -0.7956 - mean_squared_error: 0.4805 - mean_absolute_error: 0.5186
+1760/1760 [==============================] - 0s 150us/step - loss: -0.8003 - cosine_proximity: -0.8003 - mean_squared_error: 0.4859 - mean_absolute_error: 0.5208
+Epoch 8/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8164 - cosine_proximity: -0.8164 - mean_squared_error: 0.5416 - mean_absolute_error: 0.5470
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8062 - cosine_proximity: -0.8062 - mean_squared_error: 0.5369 - mean_absolute_error: 0.5452
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8083 - cosine_proximity: -0.8083 - mean_squared_error: 0.5354 - mean_absolute_error: 0.5450
+1760/1760 [==============================] - 0s 145us/step - loss: -0.8100 - cosine_proximity: -0.8100 - mean_squared_error: 0.5336 - mean_absolute_error: 0.5435
+Epoch 9/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8204 - cosine_proximity: -0.8204 - mean_squared_error: 0.5601 - mean_absolute_error: 0.5550
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8174 - cosine_proximity: -0.8174 - mean_squared_error: 0.5587 - mean_absolute_error: 0.5535
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8159 - cosine_proximity: -0.8159 - mean_squared_error: 0.5512 - mean_absolute_error: 0.5490
+1760/1760 [==============================] - 0s 146us/step - loss: -0.8163 - cosine_proximity: -0.8163 - mean_squared_error: 0.5522 - mean_absolute_error: 0.5501
+Epoch 10/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8139 - cosine_proximity: -0.8139 - mean_squared_error: 0.5498 - mean_absolute_error: 0.5473
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8231 - cosine_proximity: -0.8231 - mean_squared_error: 0.5417 - mean_absolute_error: 0.5417
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8194 - cosine_proximity: -0.8194 - mean_squared_error: 0.5335 - mean_absolute_error: 0.5373
+1760/1760 [==============================] - 0s 153us/step - loss: -0.8240 - cosine_proximity: -0.8240 - mean_squared_error: 0.5336 - mean_absolute_error: 0.5360
+Epoch 11/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8363 - cosine_proximity: -0.8363 - mean_squared_error: 0.5178 - mean_absolute_error: 0.5225
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8301 - cosine_proximity: -0.8301 - mean_squared_error: 0.5155 - mean_absolute_error: 0.5203
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8308 - cosine_proximity: -0.8308 - mean_squared_error: 0.5250 - mean_absolute_error: 0.5259
+1760/1760 [==============================] - 0s 150us/step - loss: -0.8322 - cosine_proximity: -0.8322 - mean_squared_error: 0.5212 - mean_absolute_error: 0.5245
+Epoch 12/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8326 - cosine_proximity: -0.8326 - mean_squared_error: 0.5189 - mean_absolute_error: 0.5197
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8327 - cosine_proximity: -0.8327 - mean_squared_error: 0.5126 - mean_absolute_error: 0.5183
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8376 - cosine_proximity: -0.8376 - mean_squared_error: 0.5212 - mean_absolute_error: 0.5216
+1760/1760 [==============================] - 0s 130us/step - loss: -0.8376 - cosine_proximity: -0.8376 - mean_squared_error: 0.5183 - mean_absolute_error: 0.5201
+Epoch 13/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8463 - cosine_proximity: -0.8463 - mean_squared_error: 0.5054 - mean_absolute_error: 0.5127
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8393 - cosine_proximity: -0.8393 - mean_squared_error: 0.5146 - mean_absolute_error: 0.5206
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8422 - cosine_proximity: -0.8422 - mean_squared_error: 0.5081 - mean_absolute_error: 0.5152
+1760/1760 [==============================] - 0s 145us/step - loss: -0.8424 - cosine_proximity: -0.8424 - mean_squared_error: 0.5122 - mean_absolute_error: 0.5169
+Epoch 14/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8534 - cosine_proximity: -0.8534 - mean_squared_error: 0.5061 - mean_absolute_error: 0.5156
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8403 - cosine_proximity: -0.8403 - mean_squared_error: 0.5084 - mean_absolute_error: 0.5171
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8474 - cosine_proximity: -0.8474 - mean_squared_error: 0.5107 - mean_absolute_error: 0.5183
+1760/1760 [==============================] - 0s 148us/step - loss: -0.8478 - cosine_proximity: -0.8478 - mean_squared_error: 0.5109 - mean_absolute_error: 0.5178
+Epoch 15/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8453 - cosine_proximity: -0.8453 - mean_squared_error: 0.5375 - mean_absolute_error: 0.5327
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8466 - cosine_proximity: -0.8466 - mean_squared_error: 0.5074 - mean_absolute_error: 0.5174
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8502 - cosine_proximity: -0.8502 - mean_squared_error: 0.5109 - mean_absolute_error: 0.5185
+1760/1760 [==============================] - 0s 147us/step - loss: -0.8525 - cosine_proximity: -0.8525 - mean_squared_error: 0.5141 - mean_absolute_error: 0.5207
+Epoch 16/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8452 - cosine_proximity: -0.8452 - mean_squared_error: 0.5086 - mean_absolute_error: 0.5157
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8514 - cosine_proximity: -0.8514 - mean_squared_error: 0.5293 - mean_absolute_error: 0.5285
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8556 - cosine_proximity: -0.8556 - mean_squared_error: 0.5217 - mean_absolute_error: 0.5256
+1760/1760 [==============================] - 0s 147us/step - loss: -0.8562 - cosine_proximity: -0.8562 - mean_squared_error: 0.5279 - mean_absolute_error: 0.5290
+Epoch 17/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8544 - cosine_proximity: -0.8544 - mean_squared_error: 0.5395 - mean_absolute_error: 0.5352
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8577 - cosine_proximity: -0.8577 - mean_squared_error: 0.5260 - mean_absolute_error: 0.5273
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8584 - cosine_proximity: -0.8584 - mean_squared_error: 0.5200 - mean_absolute_error: 0.5228
+1760/1760 [==============================] - 0s 141us/step - loss: -0.8600 - cosine_proximity: -0.8600 - mean_squared_error: 0.5165 - mean_absolute_error: 0.5214
+Epoch 18/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8616 - cosine_proximity: -0.8616 - mean_squared_error: 0.5238 - mean_absolute_error: 0.5276
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8636 - cosine_proximity: -0.8636 - mean_squared_error: 0.5304 - mean_absolute_error: 0.5305
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8647 - cosine_proximity: -0.8647 - mean_squared_error: 0.5216 - mean_absolute_error: 0.5242
+1760/1760 [==============================] - 0s 142us/step - loss: -0.8649 - cosine_proximity: -0.8649 - mean_squared_error: 0.5183 - mean_absolute_error: 0.5230
+Epoch 19/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8747 - cosine_proximity: -0.8747 - mean_squared_error: 0.5180 - mean_absolute_error: 0.5245
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8673 - cosine_proximity: -0.8673 - mean_squared_error: 0.5059 - mean_absolute_error: 0.5172
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8674 - cosine_proximity: -0.8674 - mean_squared_error: 0.5121 - mean_absolute_error: 0.5190
+1760/1760 [==============================] - 0s 133us/step - loss: -0.8674 - cosine_proximity: -0.8674 - mean_squared_error: 0.5205 - mean_absolute_error: 0.5240
+Epoch 20/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8690 - cosine_proximity: -0.8690 - mean_squared_error: 0.4956 - mean_absolute_error: 0.5122
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8605 - cosine_proximity: -0.8605 - mean_squared_error: 0.5073 - mean_absolute_error: 0.5152
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8675 - cosine_proximity: -0.8675 - mean_squared_error: 0.5147 - mean_absolute_error: 0.5200
+1760/1760 [==============================] - 0s 149us/step - loss: -0.8691 - cosine_proximity: -0.8691 - mean_squared_error: 0.5235 - mean_absolute_error: 0.5251
+Epoch 21/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8694 - cosine_proximity: -0.8694 - mean_squared_error: 0.5340 - mean_absolute_error: 0.5316
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8695 - cosine_proximity: -0.8695 - mean_squared_error: 0.5369 - mean_absolute_error: 0.5315
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8695 - cosine_proximity: -0.8695 - mean_squared_error: 0.5412 - mean_absolute_error: 0.5340
+1760/1760 [==============================] - 0s 143us/step - loss: -0.8703 - cosine_proximity: -0.8703 - mean_squared_error: 0.5405 - mean_absolute_error: 0.5340
+Epoch 22/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8723 - cosine_proximity: -0.8723 - mean_squared_error: 0.5705 - mean_absolute_error: 0.5547
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8690 - cosine_proximity: -0.8690 - mean_squared_error: 0.5523 - mean_absolute_error: 0.5420
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8711 - cosine_proximity: -0.8711 - mean_squared_error: 0.5533 - mean_absolute_error: 0.5413
+1760/1760 [==============================] - 0s 133us/step - loss: -0.8718 - cosine_proximity: -0.8718 - mean_squared_error: 0.5500 - mean_absolute_error: 0.5386
+Epoch 23/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8875 - cosine_proximity: -0.8875 - mean_squared_error: 0.5888 - mean_absolute_error: 0.5582
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8761 - cosine_proximity: -0.8761 - mean_squared_error: 0.5776 - mean_absolute_error: 0.5517
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8747 - cosine_proximity: -0.8747 - mean_squared_error: 0.5588 - mean_absolute_error: 0.5427
+1760/1760 [==============================] - 0s 140us/step - loss: -0.8736 - cosine_proximity: -0.8736 - mean_squared_error: 0.5576 - mean_absolute_error: 0.5421
+Epoch 24/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8784 - cosine_proximity: -0.8784 - mean_squared_error: 0.5455 - mean_absolute_error: 0.5372
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8719 - cosine_proximity: -0.8719 - mean_squared_error: 0.5468 - mean_absolute_error: 0.5367
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8750 - cosine_proximity: -0.8750 - mean_squared_error: 0.5588 - mean_absolute_error: 0.5421
+1760/1760 [==============================] - 0s 147us/step - loss: -0.8738 - cosine_proximity: -0.8738 - mean_squared_error: 0.5565 - mean_absolute_error: 0.5415
+Epoch 25/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8892 - cosine_proximity: -0.8892 - mean_squared_error: 0.5433 - mean_absolute_error: 0.5325
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8765 - cosine_proximity: -0.8765 - mean_squared_error: 0.5394 - mean_absolute_error: 0.5321
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8764 - cosine_proximity: -0.8764 - mean_squared_error: 0.5534 - mean_absolute_error: 0.5406
+1760/1760 [==============================] - 0s 159us/step - loss: -0.8763 - cosine_proximity: -0.8763 - mean_squared_error: 0.5564 - mean_absolute_error: 0.5426
+Epoch 26/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8664 - cosine_proximity: -0.8664 - mean_squared_error: 0.5539 - mean_absolute_error: 0.5429
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8742 - cosine_proximity: -0.8742 - mean_squared_error: 0.5557 - mean_absolute_error: 0.5424
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8746 - cosine_proximity: -0.8746 - mean_squared_error: 0.5562 - mean_absolute_error: 0.5418
+1760/1760 [==============================] - 0s 156us/step - loss: -0.8770 - cosine_proximity: -0.8770 - mean_squared_error: 0.5602 - mean_absolute_error: 0.5438
+Epoch 27/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8812 - cosine_proximity: -0.8812 - mean_squared_error: 0.5856 - mean_absolute_error: 0.5574
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8833 - cosine_proximity: -0.8833 - mean_squared_error: 0.5806 - mean_absolute_error: 0.5527
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8784 - cosine_proximity: -0.8784 - mean_squared_error: 0.5718 - mean_absolute_error: 0.5491
+1760/1760 [==============================] - 0s 151us/step - loss: -0.8762 - cosine_proximity: -0.8762 - mean_squared_error: 0.5755 - mean_absolute_error: 0.5513
+Epoch 28/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8831 - cosine_proximity: -0.8831 - mean_squared_error: 0.5427 - mean_absolute_error: 0.5327
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8795 - cosine_proximity: -0.8795 - mean_squared_error: 0.5684 - mean_absolute_error: 0.5467
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8806 - cosine_proximity: -0.8806 - mean_squared_error: 0.5794 - mean_absolute_error: 0.5536
+1760/1760 [==============================] - 0s 149us/step - loss: -0.8782 - cosine_proximity: -0.8782 - mean_squared_error: 0.5774 - mean_absolute_error: 0.5527
+Epoch 29/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8695 - cosine_proximity: -0.8695 - mean_squared_error: 0.6076 - mean_absolute_error: 0.5650
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8735 - cosine_proximity: -0.8735 - mean_squared_error: 0.5916 - mean_absolute_error: 0.5599
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8821 - cosine_proximity: -0.8821 - mean_squared_error: 0.5938 - mean_absolute_error: 0.5609
+1760/1760 [==============================] - 0s 155us/step - loss: -0.8789 - cosine_proximity: -0.8789 - mean_squared_error: 0.5884 - mean_absolute_error: 0.5584
+Epoch 30/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8698 - cosine_proximity: -0.8698 - mean_squared_error: 0.5910 - mean_absolute_error: 0.5611
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8786 - cosine_proximity: -0.8786 - mean_squared_error: 0.5750 - mean_absolute_error: 0.5524
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8825 - cosine_proximity: -0.8825 - mean_squared_error: 0.5849 - mean_absolute_error: 0.5564
+1760/1760 [==============================] - 0s 149us/step - loss: -0.8798 - cosine_proximity: -0.8798 - mean_squared_error: 0.5859 - mean_absolute_error: 0.5573
+Epoch 31/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8788 - cosine_proximity: -0.8788 - mean_squared_error: 0.5814 - mean_absolute_error: 0.5516
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8775 - cosine_proximity: -0.8775 - mean_squared_error: 0.5908 - mean_absolute_error: 0.5572
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8808 - cosine_proximity: -0.8808 - mean_squared_error: 0.5840 - mean_absolute_error: 0.5543
+1760/1760 [==============================] - 0s 159us/step - loss: -0.8817 - cosine_proximity: -0.8817 - mean_squared_error: 0.5880 - mean_absolute_error: 0.5565
+Epoch 32/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8824 - cosine_proximity: -0.8824 - mean_squared_error: 0.5740 - mean_absolute_error: 0.5513
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8833 - cosine_proximity: -0.8833 - mean_squared_error: 0.5719 - mean_absolute_error: 0.5482
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8823 - cosine_proximity: -0.8823 - mean_squared_error: 0.5641 - mean_absolute_error: 0.5441
+1760/1760 [==============================] - 0s 138us/step - loss: -0.8810 - cosine_proximity: -0.8810 - mean_squared_error: 0.5775 - mean_absolute_error: 0.5515
+Epoch 33/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8798 - cosine_proximity: -0.8798 - mean_squared_error: 0.5954 - mean_absolute_error: 0.5582
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8833 - cosine_proximity: -0.8833 - mean_squared_error: 0.5726 - mean_absolute_error: 0.5471
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8822 - cosine_proximity: -0.8822 - mean_squared_error: 0.5787 - mean_absolute_error: 0.5513
+1760/1760 [==============================] - 0s 142us/step - loss: -0.8809 - cosine_proximity: -0.8809 - mean_squared_error: 0.5829 - mean_absolute_error: 0.5538
+Epoch 34/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8835 - cosine_proximity: -0.8835 - mean_squared_error: 0.6154 - mean_absolute_error: 0.5686
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8812 - cosine_proximity: -0.8812 - mean_squared_error: 0.5826 - mean_absolute_error: 0.5528
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8832 - cosine_proximity: -0.8832 - mean_squared_error: 0.5930 - mean_absolute_error: 0.5596
+1760/1760 [==============================] - 0s 153us/step - loss: -0.8828 - cosine_proximity: -0.8828 - mean_squared_error: 0.5932 - mean_absolute_error: 0.5589
+Epoch 35/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8866 - cosine_proximity: -0.8866 - mean_squared_error: 0.6247 - mean_absolute_error: 0.5758
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8797 - cosine_proximity: -0.8797 - mean_squared_error: 0.6005 - mean_absolute_error: 0.5639
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8831 - cosine_proximity: -0.8831 - mean_squared_error: 0.6015 - mean_absolute_error: 0.5635
+1760/1760 [==============================] - 0s 136us/step - loss: -0.8831 - cosine_proximity: -0.8831 - mean_squared_error: 0.5998 - mean_absolute_error: 0.5625
+Epoch 36/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8956 - cosine_proximity: -0.8956 - mean_squared_error: 0.5863 - mean_absolute_error: 0.5549
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8866 - cosine_proximity: -0.8866 - mean_squared_error: 0.5934 - mean_absolute_error: 0.5577
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8806 - cosine_proximity: -0.8806 - mean_squared_error: 0.5902 - mean_absolute_error: 0.5564
+1760/1760 [==============================] - 0s 150us/step - loss: -0.8829 - cosine_proximity: -0.8829 - mean_squared_error: 0.5944 - mean_absolute_error: 0.5585
+Epoch 37/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8814 - cosine_proximity: -0.8814 - mean_squared_error: 0.6205 - mean_absolute_error: 0.5676
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8874 - cosine_proximity: -0.8874 - mean_squared_error: 0.6200 - mean_absolute_error: 0.5710
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8819 - cosine_proximity: -0.8819 - mean_squared_error: 0.6031 - mean_absolute_error: 0.5633
+1760/1760 [==============================] - 0s 144us/step - loss: -0.8827 - cosine_proximity: -0.8827 - mean_squared_error: 0.5942 - mean_absolute_error: 0.5582
+Epoch 38/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8800 - cosine_proximity: -0.8800 - mean_squared_error: 0.6185 - mean_absolute_error: 0.5704
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8911 - cosine_proximity: -0.8911 - mean_squared_error: 0.6096 - mean_absolute_error: 0.5665
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8840 - cosine_proximity: -0.8840 - mean_squared_error: 0.5853 - mean_absolute_error: 0.5543
+1760/1760 [==============================] - 0s 139us/step - loss: -0.8857 - cosine_proximity: -0.8857 - mean_squared_error: 0.5973 - mean_absolute_error: 0.5605
+Epoch 39/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8851 - cosine_proximity: -0.8851 - mean_squared_error: 0.6189 - mean_absolute_error: 0.5750
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8842 - cosine_proximity: -0.8842 - mean_squared_error: 0.6108 - mean_absolute_error: 0.5672
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8875 - cosine_proximity: -0.8875 - mean_squared_error: 0.6060 - mean_absolute_error: 0.5633
+1760/1760 [==============================] - 0s 151us/step - loss: -0.8861 - cosine_proximity: -0.8861 - mean_squared_error: 0.6104 - mean_absolute_error: 0.5657
+Epoch 40/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8863 - cosine_proximity: -0.8863 - mean_squared_error: 0.5976 - mean_absolute_error: 0.5596
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8823 - cosine_proximity: -0.8823 - mean_squared_error: 0.6111 - mean_absolute_error: 0.5649
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8872 - cosine_proximity: -0.8872 - mean_squared_error: 0.6179 - mean_absolute_error: 0.5680
+1760/1760 [==============================] - 0s 144us/step - loss: -0.8872 - cosine_proximity: -0.8872 - mean_squared_error: 0.6211 - mean_absolute_error: 0.5692
+Epoch 41/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8848 - cosine_proximity: -0.8848 - mean_squared_error: 0.6170 - mean_absolute_error: 0.5709
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8861 - cosine_proximity: -0.8861 - mean_squared_error: 0.6164 - mean_absolute_error: 0.5690
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8883 - cosine_proximity: -0.8883 - mean_squared_error: 0.6105 - mean_absolute_error: 0.5631
+1760/1760 [==============================] - 0s 134us/step - loss: -0.8882 - cosine_proximity: -0.8882 - mean_squared_error: 0.6131 - mean_absolute_error: 0.5643
+Epoch 42/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8972 - cosine_proximity: -0.8972 - mean_squared_error: 0.6300 - mean_absolute_error: 0.5741
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8921 - cosine_proximity: -0.8921 - mean_squared_error: 0.6327 - mean_absolute_error: 0.5747
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8866 - cosine_proximity: -0.8866 - mean_squared_error: 0.6167 - mean_absolute_error: 0.5666
+1760/1760 [==============================] - 0s 145us/step - loss: -0.8879 - cosine_proximity: -0.8879 - mean_squared_error: 0.6144 - mean_absolute_error: 0.5650
+Epoch 43/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9081 - cosine_proximity: -0.9081 - mean_squared_error: 0.6656 - mean_absolute_error: 0.5882
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8909 - cosine_proximity: -0.8909 - mean_squared_error: 0.6372 - mean_absolute_error: 0.5766
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8882 - cosine_proximity: -0.8882 - mean_squared_error: 0.6193 - mean_absolute_error: 0.5670
+1760/1760 [==============================] - 0s 141us/step - loss: -0.8891 - cosine_proximity: -0.8891 - mean_squared_error: 0.6164 - mean_absolute_error: 0.5649
+Epoch 44/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8900 - cosine_proximity: -0.8900 - mean_squared_error: 0.6356 - mean_absolute_error: 0.5738
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8913 - cosine_proximity: -0.8913 - mean_squared_error: 0.6342 - mean_absolute_error: 0.5745
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8886 - cosine_proximity: -0.8886 - mean_squared_error: 0.6350 - mean_absolute_error: 0.5746
+1760/1760 [==============================] - 0s 148us/step - loss: -0.8887 - cosine_proximity: -0.8887 - mean_squared_error: 0.6362 - mean_absolute_error: 0.5745
+Epoch 45/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8921 - cosine_proximity: -0.8921 - mean_squared_error: 0.6380 - mean_absolute_error: 0.5766
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8866 - cosine_proximity: -0.8866 - mean_squared_error: 0.6378 - mean_absolute_error: 0.5779
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8868 - cosine_proximity: -0.8868 - mean_squared_error: 0.6272 - mean_absolute_error: 0.5715
+1760/1760 [==============================] - 0s 140us/step - loss: -0.8885 - cosine_proximity: -0.8885 - mean_squared_error: 0.6322 - mean_absolute_error: 0.5735
+Epoch 46/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8899 - cosine_proximity: -0.8899 - mean_squared_error: 0.6219 - mean_absolute_error: 0.5675
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8964 - cosine_proximity: -0.8964 - mean_squared_error: 0.6441 - mean_absolute_error: 0.5786
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8866 - cosine_proximity: -0.8866 - mean_squared_error: 0.6392 - mean_absolute_error: 0.5745
+1760/1760 [==============================] - 0s 145us/step - loss: -0.8892 - cosine_proximity: -0.8892 - mean_squared_error: 0.6381 - mean_absolute_error: 0.5740
+Epoch 47/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8967 - cosine_proximity: -0.8967 - mean_squared_error: 0.6305 - mean_absolute_error: 0.5696
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8918 - cosine_proximity: -0.8918 - mean_squared_error: 0.6363 - mean_absolute_error: 0.5712
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8946 - cosine_proximity: -0.8946 - mean_squared_error: 0.6522 - mean_absolute_error: 0.5793
+1760/1760 [==============================] - 0s 152us/step - loss: -0.8902 - cosine_proximity: -0.8902 - mean_squared_error: 0.6536 - mean_absolute_error: 0.5800
+Epoch 48/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8793 - cosine_proximity: -0.8793 - mean_squared_error: 0.6502 - mean_absolute_error: 0.5818
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8922 - cosine_proximity: -0.8922 - mean_squared_error: 0.6614 - mean_absolute_error: 0.5839
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8899 - cosine_proximity: -0.8899 - mean_squared_error: 0.6615 - mean_absolute_error: 0.5836
+1760/1760 [==============================] - 0s 141us/step - loss: -0.8906 - cosine_proximity: -0.8906 - mean_squared_error: 0.6586 - mean_absolute_error: 0.5826
+Epoch 49/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8712 - cosine_proximity: -0.8712 - mean_squared_error: 0.6327 - mean_absolute_error: 0.5738
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8890 - cosine_proximity: -0.8890 - mean_squared_error: 0.6384 - mean_absolute_error: 0.5734
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8910 - cosine_proximity: -0.8910 - mean_squared_error: 0.6584 - mean_absolute_error: 0.5817
+1760/1760 [==============================] - 0s 149us/step - loss: -0.8898 - cosine_proximity: -0.8898 - mean_squared_error: 0.6542 - mean_absolute_error: 0.5794
+Epoch 50/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8888 - cosine_proximity: -0.8888 - mean_squared_error: 0.6100 - mean_absolute_error: 0.5570
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8879 - cosine_proximity: -0.8879 - mean_squared_error: 0.6408 - mean_absolute_error: 0.5720
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8902 - cosine_proximity: -0.8902 - mean_squared_error: 0.6522 - mean_absolute_error: 0.5780
+1760/1760 [==============================] - 0s 145us/step - loss: -0.8907 - cosine_proximity: -0.8907 - mean_squared_error: 0.6555 - mean_absolute_error: 0.5798
+Epoch 51/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8891 - cosine_proximity: -0.8891 - mean_squared_error: 0.6566 - mean_absolute_error: 0.5802
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8933 - cosine_proximity: -0.8933 - mean_squared_error: 0.6439 - mean_absolute_error: 0.5727
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8874 - cosine_proximity: -0.8874 - mean_squared_error: 0.6492 - mean_absolute_error: 0.5759
+1760/1760 [==============================] - 0s 148us/step - loss: -0.8916 - cosine_proximity: -0.8916 - mean_squared_error: 0.6618 - mean_absolute_error: 0.5817
+Epoch 52/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8860 - cosine_proximity: -0.8860 - mean_squared_error: 0.6296 - mean_absolute_error: 0.5684
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8928 - cosine_proximity: -0.8928 - mean_squared_error: 0.6708 - mean_absolute_error: 0.5868
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8944 - cosine_proximity: -0.8944 - mean_squared_error: 0.6724 - mean_absolute_error: 0.5863
+1760/1760 [==============================] - 0s 146us/step - loss: -0.8941 - cosine_proximity: -0.8941 - mean_squared_error: 0.6642 - mean_absolute_error: 0.5825
+Epoch 53/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8732 - cosine_proximity: -0.8732 - mean_squared_error: 0.6198 - mean_absolute_error: 0.5603
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8882 - cosine_proximity: -0.8882 - mean_squared_error: 0.6319 - mean_absolute_error: 0.5654
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8917 - cosine_proximity: -0.8917 - mean_squared_error: 0.6600 - mean_absolute_error: 0.5794
+1760/1760 [==============================] - 0s 146us/step - loss: -0.8930 - cosine_proximity: -0.8930 - mean_squared_error: 0.6660 - mean_absolute_error: 0.5828
+Epoch 54/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8947 - cosine_proximity: -0.8947 - mean_squared_error: 0.6426 - mean_absolute_error: 0.5688
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8948 - cosine_proximity: -0.8948 - mean_squared_error: 0.6419 - mean_absolute_error: 0.5713
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8950 - cosine_proximity: -0.8950 - mean_squared_error: 0.6530 - mean_absolute_error: 0.5766
+1760/1760 [==============================] - 0s 146us/step - loss: -0.8942 - cosine_proximity: -0.8942 - mean_squared_error: 0.6555 - mean_absolute_error: 0.5773
+Epoch 55/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8927 - cosine_proximity: -0.8927 - mean_squared_error: 0.6508 - mean_absolute_error: 0.5747
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8906 - cosine_proximity: -0.8906 - mean_squared_error: 0.6613 - mean_absolute_error: 0.5802
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8917 - cosine_proximity: -0.8917 - mean_squared_error: 0.6623 - mean_absolute_error: 0.5801
+1760/1760 [==============================] - 0s 144us/step - loss: -0.8936 - cosine_proximity: -0.8936 - mean_squared_error: 0.6662 - mean_absolute_error: 0.5817
+Epoch 56/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8973 - cosine_proximity: -0.8973 - mean_squared_error: 0.7047 - mean_absolute_error: 0.6000
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8913 - cosine_proximity: -0.8913 - mean_squared_error: 0.6639 - mean_absolute_error: 0.5809
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8909 - cosine_proximity: -0.8909 - mean_squared_error: 0.6618 - mean_absolute_error: 0.5778
+1760/1760 [==============================] - 0s 145us/step - loss: -0.8948 - cosine_proximity: -0.8948 - mean_squared_error: 0.6649 - mean_absolute_error: 0.5792
+Epoch 57/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8892 - cosine_proximity: -0.8892 - mean_squared_error: 0.6444 - mean_absolute_error: 0.5687
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8876 - cosine_proximity: -0.8876 - mean_squared_error: 0.6604 - mean_absolute_error: 0.5792
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8915 - cosine_proximity: -0.8915 - mean_squared_error: 0.6616 - mean_absolute_error: 0.5797
+1760/1760 [==============================] - 0s 142us/step - loss: -0.8944 - cosine_proximity: -0.8944 - mean_squared_error: 0.6616 - mean_absolute_error: 0.5793
+Epoch 58/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8897 - cosine_proximity: -0.8897 - mean_squared_error: 0.6656 - mean_absolute_error: 0.5819
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8991 - cosine_proximity: -0.8991 - mean_squared_error: 0.6583 - mean_absolute_error: 0.5773
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9001 - cosine_proximity: -0.9001 - mean_squared_error: 0.6707 - mean_absolute_error: 0.5824
+1760/1760 [==============================] - 0s 142us/step - loss: -0.8962 - cosine_proximity: -0.8962 - mean_squared_error: 0.6586 - mean_absolute_error: 0.5763
+Epoch 59/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9028 - cosine_proximity: -0.9028 - mean_squared_error: 0.6444 - mean_absolute_error: 0.5708
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8937 - cosine_proximity: -0.8937 - mean_squared_error: 0.6544 - mean_absolute_error: 0.5743
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8940 - cosine_proximity: -0.8940 - mean_squared_error: 0.6696 - mean_absolute_error: 0.5820
+1760/1760 [==============================] - 0s 147us/step - loss: -0.8950 - cosine_proximity: -0.8950 - mean_squared_error: 0.6712 - mean_absolute_error: 0.5824
+Epoch 60/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8956 - cosine_proximity: -0.8956 - mean_squared_error: 0.7043 - mean_absolute_error: 0.5969
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8988 - cosine_proximity: -0.8988 - mean_squared_error: 0.7123 - mean_absolute_error: 0.6025
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8943 - cosine_proximity: -0.8943 - mean_squared_error: 0.6805 - mean_absolute_error: 0.5866
+1760/1760 [==============================] - 0s 151us/step - loss: -0.8962 - cosine_proximity: -0.8962 - mean_squared_error: 0.6761 - mean_absolute_error: 0.5843
+Epoch 61/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9099 - cosine_proximity: -0.9099 - mean_squared_error: 0.6669 - mean_absolute_error: 0.5795
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8962 - cosine_proximity: -0.8962 - mean_squared_error: 0.6671 - mean_absolute_error: 0.5794
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8957 - cosine_proximity: -0.8957 - mean_squared_error: 0.6708 - mean_absolute_error: 0.5822
+1760/1760 [==============================] - 0s 141us/step - loss: -0.8970 - cosine_proximity: -0.8970 - mean_squared_error: 0.6697 - mean_absolute_error: 0.5817
+Epoch 62/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8922 - cosine_proximity: -0.8922 - mean_squared_error: 0.6811 - mean_absolute_error: 0.5834
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8944 - cosine_proximity: -0.8944 - mean_squared_error: 0.6613 - mean_absolute_error: 0.5745
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8965 - cosine_proximity: -0.8965 - mean_squared_error: 0.6633 - mean_absolute_error: 0.5761
+1760/1760 [==============================] - 0s 149us/step - loss: -0.8972 - cosine_proximity: -0.8972 - mean_squared_error: 0.6639 - mean_absolute_error: 0.5760
+Epoch 63/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8923 - cosine_proximity: -0.8923 - mean_squared_error: 0.7048 - mean_absolute_error: 0.5968
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8938 - cosine_proximity: -0.8938 - mean_squared_error: 0.6911 - mean_absolute_error: 0.5894
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8961 - cosine_proximity: -0.8961 - mean_squared_error: 0.6757 - mean_absolute_error: 0.5822
+1760/1760 [==============================] - 0s 139us/step - loss: -0.8971 - cosine_proximity: -0.8971 - mean_squared_error: 0.6751 - mean_absolute_error: 0.5808
+Epoch 64/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9034 - cosine_proximity: -0.9034 - mean_squared_error: 0.6795 - mean_absolute_error: 0.5808
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9012 - cosine_proximity: -0.9012 - mean_squared_error: 0.6677 - mean_absolute_error: 0.5766
+1760/1760 [==============================] - 0s 133us/step - loss: -0.8987 - cosine_proximity: -0.8987 - mean_squared_error: 0.6737 - mean_absolute_error: 0.5799
+Epoch 65/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8960 - cosine_proximity: -0.8960 - mean_squared_error: 0.6681 - mean_absolute_error: 0.5768
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8960 - cosine_proximity: -0.8960 - mean_squared_error: 0.6602 - mean_absolute_error: 0.5707
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8975 - cosine_proximity: -0.8975 - mean_squared_error: 0.6771 - mean_absolute_error: 0.5795
+1760/1760 [==============================] - 0s 138us/step - loss: -0.8982 - cosine_proximity: -0.8982 - mean_squared_error: 0.6728 - mean_absolute_error: 0.5784
+Epoch 66/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8917 - cosine_proximity: -0.8917 - mean_squared_error: 0.6760 - mean_absolute_error: 0.5813
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8976 - cosine_proximity: -0.8976 - mean_squared_error: 0.6895 - mean_absolute_error: 0.5863
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8976 - cosine_proximity: -0.8976 - mean_squared_error: 0.6865 - mean_absolute_error: 0.5849
+1760/1760 [==============================] - 0s 147us/step - loss: -0.8992 - cosine_proximity: -0.8992 - mean_squared_error: 0.6856 - mean_absolute_error: 0.5849
+Epoch 67/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8956 - cosine_proximity: -0.8956 - mean_squared_error: 0.6793 - mean_absolute_error: 0.5775
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8950 - cosine_proximity: -0.8950 - mean_squared_error: 0.6846 - mean_absolute_error: 0.5811
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.8988 - cosine_proximity: -0.8988 - mean_squared_error: 0.6856 - mean_absolute_error: 0.5838
+1760/1760 [==============================] - 0s 143us/step - loss: -0.8978 - cosine_proximity: -0.8978 - mean_squared_error: 0.6876 - mean_absolute_error: 0.5845
+Epoch 68/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9014 - cosine_proximity: -0.9014 - mean_squared_error: 0.7304 - mean_absolute_error: 0.6028
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9009 - cosine_proximity: -0.9009 - mean_squared_error: 0.6858 - mean_absolute_error: 0.5842
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9013 - cosine_proximity: -0.9013 - mean_squared_error: 0.6832 - mean_absolute_error: 0.5830
+1760/1760 [==============================] - 0s 132us/step - loss: -0.8998 - cosine_proximity: -0.8998 - mean_squared_error: 0.6751 - mean_absolute_error: 0.5794
+Epoch 69/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8992 - cosine_proximity: -0.8992 - mean_squared_error: 0.6517 - mean_absolute_error: 0.5709
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9087 - cosine_proximity: -0.9087 - mean_squared_error: 0.6790 - mean_absolute_error: 0.5807
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9032 - cosine_proximity: -0.9032 - mean_squared_error: 0.6782 - mean_absolute_error: 0.5810
+1760/1760 [==============================] - 0s 156us/step - loss: -0.9003 - cosine_proximity: -0.9003 - mean_squared_error: 0.6774 - mean_absolute_error: 0.5795
+Epoch 70/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9126 - cosine_proximity: -0.9126 - mean_squared_error: 0.6859 - mean_absolute_error: 0.5840
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9005 - cosine_proximity: -0.9005 - mean_squared_error: 0.6790 - mean_absolute_error: 0.5799
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9001 - cosine_proximity: -0.9001 - mean_squared_error: 0.6693 - mean_absolute_error: 0.5763
+1760/1760 [==============================] - 0s 149us/step - loss: -0.9003 - cosine_proximity: -0.9003 - mean_squared_error: 0.6676 - mean_absolute_error: 0.5747
+Epoch 71/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9005 - cosine_proximity: -0.9005 - mean_squared_error: 0.6223 - mean_absolute_error: 0.5494
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8986 - cosine_proximity: -0.8986 - mean_squared_error: 0.6481 - mean_absolute_error: 0.5616
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9019 - cosine_proximity: -0.9019 - mean_squared_error: 0.6661 - mean_absolute_error: 0.5724
+1760/1760 [==============================] - 0s 138us/step - loss: -0.9013 - cosine_proximity: -0.9013 - mean_squared_error: 0.6598 - mean_absolute_error: 0.5697
+Epoch 72/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9069 - cosine_proximity: -0.9069 - mean_squared_error: 0.6833 - mean_absolute_error: 0.5859
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9060 - cosine_proximity: -0.9060 - mean_squared_error: 0.6642 - mean_absolute_error: 0.5757
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9010 - cosine_proximity: -0.9010 - mean_squared_error: 0.6552 - mean_absolute_error: 0.5695
+1760/1760 [==============================] - 0s 149us/step - loss: -0.9011 - cosine_proximity: -0.9011 - mean_squared_error: 0.6650 - mean_absolute_error: 0.5737
+Epoch 73/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9042 - cosine_proximity: -0.9042 - mean_squared_error: 0.6440 - mean_absolute_error: 0.5620
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9071 - cosine_proximity: -0.9071 - mean_squared_error: 0.6557 - mean_absolute_error: 0.5690
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9068 - cosine_proximity: -0.9068 - mean_squared_error: 0.6628 - mean_absolute_error: 0.5725
+1760/1760 [==============================] - 0s 152us/step - loss: -0.9032 - cosine_proximity: -0.9032 - mean_squared_error: 0.6639 - mean_absolute_error: 0.5729
+Epoch 74/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9031 - cosine_proximity: -0.9031 - mean_squared_error: 0.6440 - mean_absolute_error: 0.5625
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8991 - cosine_proximity: -0.8991 - mean_squared_error: 0.6595 - mean_absolute_error: 0.5728
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9019 - cosine_proximity: -0.9019 - mean_squared_error: 0.6626 - mean_absolute_error: 0.5730
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9016 - cosine_proximity: -0.9016 - mean_squared_error: 0.6589 - mean_absolute_error: 0.5700
+Epoch 75/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9083 - cosine_proximity: -0.9083 - mean_squared_error: 0.6850 - mean_absolute_error: 0.5772
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9049 - cosine_proximity: -0.9049 - mean_squared_error: 0.6612 - mean_absolute_error: 0.5693
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9027 - cosine_proximity: -0.9027 - mean_squared_error: 0.6561 - mean_absolute_error: 0.5664
+1760/1760 [==============================] - 0s 144us/step - loss: -0.9035 - cosine_proximity: -0.9035 - mean_squared_error: 0.6739 - mean_absolute_error: 0.5745
+Epoch 76/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8998 - cosine_proximity: -0.8998 - mean_squared_error: 0.6249 - mean_absolute_error: 0.5513
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9016 - cosine_proximity: -0.9016 - mean_squared_error: 0.6536 - mean_absolute_error: 0.5639
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9052 - cosine_proximity: -0.9052 - mean_squared_error: 0.6628 - mean_absolute_error: 0.5695
+1760/1760 [==============================] - 0s 144us/step - loss: -0.9049 - cosine_proximity: -0.9049 - mean_squared_error: 0.6656 - mean_absolute_error: 0.5715
+Epoch 77/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9035 - cosine_proximity: -0.9035 - mean_squared_error: 0.7059 - mean_absolute_error: 0.5874
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9032 - cosine_proximity: -0.9032 - mean_squared_error: 0.6958 - mean_absolute_error: 0.5843
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9042 - cosine_proximity: -0.9042 - mean_squared_error: 0.6767 - mean_absolute_error: 0.5751
+1760/1760 [==============================] - 0s 144us/step - loss: -0.9027 - cosine_proximity: -0.9027 - mean_squared_error: 0.6672 - mean_absolute_error: 0.5707
+Epoch 78/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9086 - cosine_proximity: -0.9086 - mean_squared_error: 0.6496 - mean_absolute_error: 0.5673
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9111 - cosine_proximity: -0.9111 - mean_squared_error: 0.6847 - mean_absolute_error: 0.5824
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9043 - cosine_proximity: -0.9043 - mean_squared_error: 0.6686 - mean_absolute_error: 0.5721
+1760/1760 [==============================] - 0s 148us/step - loss: -0.9042 - cosine_proximity: -0.9042 - mean_squared_error: 0.6677 - mean_absolute_error: 0.5716
+Epoch 79/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9037 - cosine_proximity: -0.9037 - mean_squared_error: 0.7039 - mean_absolute_error: 0.5878
+1024/1760 [================>.............] - ETA: 0s - loss: -0.8985 - cosine_proximity: -0.8985 - mean_squared_error: 0.6705 - mean_absolute_error: 0.5710
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9013 - cosine_proximity: -0.9013 - mean_squared_error: 0.6686 - mean_absolute_error: 0.5717
+1760/1760 [==============================] - 0s 158us/step - loss: -0.9029 - cosine_proximity: -0.9029 - mean_squared_error: 0.6792 - mean_absolute_error: 0.5765
+Epoch 80/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8990 - cosine_proximity: -0.8990 - mean_squared_error: 0.6655 - mean_absolute_error: 0.5658
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9056 - cosine_proximity: -0.9056 - mean_squared_error: 0.6827 - mean_absolute_error: 0.5767
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9031 - cosine_proximity: -0.9031 - mean_squared_error: 0.6689 - mean_absolute_error: 0.5713
+1760/1760 [==============================] - 0s 140us/step - loss: -0.9055 - cosine_proximity: -0.9055 - mean_squared_error: 0.6740 - mean_absolute_error: 0.5734
+Epoch 81/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9031 - cosine_proximity: -0.9031 - mean_squared_error: 0.6398 - mean_absolute_error: 0.5576
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9077 - cosine_proximity: -0.9077 - mean_squared_error: 0.6628 - mean_absolute_error: 0.5686
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9034 - cosine_proximity: -0.9034 - mean_squared_error: 0.6582 - mean_absolute_error: 0.5670
+1760/1760 [==============================] - 0s 144us/step - loss: -0.9055 - cosine_proximity: -0.9055 - mean_squared_error: 0.6599 - mean_absolute_error: 0.5661
+Epoch 82/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9062 - cosine_proximity: -0.9062 - mean_squared_error: 0.6860 - mean_absolute_error: 0.5779
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9059 - cosine_proximity: -0.9059 - mean_squared_error: 0.6646 - mean_absolute_error: 0.5689
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9025 - cosine_proximity: -0.9025 - mean_squared_error: 0.6656 - mean_absolute_error: 0.5684
+1760/1760 [==============================] - 0s 147us/step - loss: -0.9050 - cosine_proximity: -0.9050 - mean_squared_error: 0.6601 - mean_absolute_error: 0.5663
+Epoch 83/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9058 - cosine_proximity: -0.9058 - mean_squared_error: 0.6649 - mean_absolute_error: 0.5720
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9124 - cosine_proximity: -0.9124 - mean_squared_error: 0.6638 - mean_absolute_error: 0.5679
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9075 - cosine_proximity: -0.9075 - mean_squared_error: 0.6683 - mean_absolute_error: 0.5699
+1760/1760 [==============================] - 0s 152us/step - loss: -0.9056 - cosine_proximity: -0.9056 - mean_squared_error: 0.6664 - mean_absolute_error: 0.5694
+Epoch 84/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9198 - cosine_proximity: -0.9198 - mean_squared_error: 0.6788 - mean_absolute_error: 0.5713
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9108 - cosine_proximity: -0.9108 - mean_squared_error: 0.6849 - mean_absolute_error: 0.5760
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9051 - cosine_proximity: -0.9051 - mean_squared_error: 0.6738 - mean_absolute_error: 0.5727
+1760/1760 [==============================] - 0s 141us/step - loss: -0.9061 - cosine_proximity: -0.9061 - mean_squared_error: 0.6681 - mean_absolute_error: 0.5697
+Epoch 85/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9118 - cosine_proximity: -0.9118 - mean_squared_error: 0.6384 - mean_absolute_error: 0.5564
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9057 - cosine_proximity: -0.9057 - mean_squared_error: 0.6417 - mean_absolute_error: 0.5561
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9050 - cosine_proximity: -0.9050 - mean_squared_error: 0.6617 - mean_absolute_error: 0.5655
+1760/1760 [==============================] - 0s 144us/step - loss: -0.9055 - cosine_proximity: -0.9055 - mean_squared_error: 0.6559 - mean_absolute_error: 0.5627
+Epoch 86/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9037 - cosine_proximity: -0.9037 - mean_squared_error: 0.6299 - mean_absolute_error: 0.5469
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9093 - cosine_proximity: -0.9093 - mean_squared_error: 0.6597 - mean_absolute_error: 0.5625
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9080 - cosine_proximity: -0.9080 - mean_squared_error: 0.6629 - mean_absolute_error: 0.5651
+1760/1760 [==============================] - 0s 152us/step - loss: -0.9071 - cosine_proximity: -0.9071 - mean_squared_error: 0.6574 - mean_absolute_error: 0.5623
+Epoch 87/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9060 - cosine_proximity: -0.9060 - mean_squared_error: 0.6537 - mean_absolute_error: 0.5604
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9122 - cosine_proximity: -0.9122 - mean_squared_error: 0.6709 - mean_absolute_error: 0.5680
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9083 - cosine_proximity: -0.9083 - mean_squared_error: 0.6663 - mean_absolute_error: 0.5667
+1760/1760 [==============================] - 0s 143us/step - loss: -0.9074 - cosine_proximity: -0.9074 - mean_squared_error: 0.6571 - mean_absolute_error: 0.5624
+Epoch 88/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9011 - cosine_proximity: -0.9011 - mean_squared_error: 0.6478 - mean_absolute_error: 0.5544
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9068 - cosine_proximity: -0.9068 - mean_squared_error: 0.6417 - mean_absolute_error: 0.5533
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9090 - cosine_proximity: -0.9090 - mean_squared_error: 0.6490 - mean_absolute_error: 0.5575
+1760/1760 [==============================] - 0s 152us/step - loss: -0.9081 - cosine_proximity: -0.9081 - mean_squared_error: 0.6538 - mean_absolute_error: 0.5600
+Epoch 89/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9088 - cosine_proximity: -0.9088 - mean_squared_error: 0.6945 - mean_absolute_error: 0.5840
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9093 - cosine_proximity: -0.9093 - mean_squared_error: 0.6588 - mean_absolute_error: 0.5637
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9132 - cosine_proximity: -0.9132 - mean_squared_error: 0.6632 - mean_absolute_error: 0.5660
+1760/1760 [==============================] - 0s 142us/step - loss: -0.9086 - cosine_proximity: -0.9086 - mean_squared_error: 0.6424 - mean_absolute_error: 0.5555
+Epoch 90/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9127 - cosine_proximity: -0.9127 - mean_squared_error: 0.6521 - mean_absolute_error: 0.5662
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9103 - cosine_proximity: -0.9103 - mean_squared_error: 0.6543 - mean_absolute_error: 0.5638
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9057 - cosine_proximity: -0.9057 - mean_squared_error: 0.6408 - mean_absolute_error: 0.5549
+1760/1760 [==============================] - 0s 149us/step - loss: -0.9086 - cosine_proximity: -0.9086 - mean_squared_error: 0.6470 - mean_absolute_error: 0.5577
+Epoch 91/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9071 - cosine_proximity: -0.9071 - mean_squared_error: 0.6567 - mean_absolute_error: 0.5616
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9130 - cosine_proximity: -0.9130 - mean_squared_error: 0.6760 - mean_absolute_error: 0.5709
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9072 - cosine_proximity: -0.9072 - mean_squared_error: 0.6445 - mean_absolute_error: 0.5557
+1760/1760 [==============================] - 0s 149us/step - loss: -0.9073 - cosine_proximity: -0.9073 - mean_squared_error: 0.6457 - mean_absolute_error: 0.5561
+Epoch 92/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9124 - cosine_proximity: -0.9124 - mean_squared_error: 0.6276 - mean_absolute_error: 0.5466
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9073 - cosine_proximity: -0.9073 - mean_squared_error: 0.6559 - mean_absolute_error: 0.5600
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9070 - cosine_proximity: -0.9070 - mean_squared_error: 0.6476 - mean_absolute_error: 0.5559
+1760/1760 [==============================] - 0s 156us/step - loss: -0.9083 - cosine_proximity: -0.9083 - mean_squared_error: 0.6487 - mean_absolute_error: 0.5572
+Epoch 93/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9057 - cosine_proximity: -0.9057 - mean_squared_error: 0.6678 - mean_absolute_error: 0.5694
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9074 - cosine_proximity: -0.9074 - mean_squared_error: 0.6505 - mean_absolute_error: 0.5587
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9091 - cosine_proximity: -0.9091 - mean_squared_error: 0.6476 - mean_absolute_error: 0.5575
+1760/1760 [==============================] - 0s 149us/step - loss: -0.9089 - cosine_proximity: -0.9089 - mean_squared_error: 0.6559 - mean_absolute_error: 0.5605
+Epoch 94/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9185 - cosine_proximity: -0.9185 - mean_squared_error: 0.6775 - mean_absolute_error: 0.5702
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9063 - cosine_proximity: -0.9063 - mean_squared_error: 0.6644 - mean_absolute_error: 0.5639
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9053 - cosine_proximity: -0.9053 - mean_squared_error: 0.6521 - mean_absolute_error: 0.5588
+1760/1760 [==============================] - 0s 143us/step - loss: -0.9077 - cosine_proximity: -0.9077 - mean_squared_error: 0.6563 - mean_absolute_error: 0.5601
+Epoch 95/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9078 - cosine_proximity: -0.9078 - mean_squared_error: 0.6428 - mean_absolute_error: 0.5568
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9071 - cosine_proximity: -0.9071 - mean_squared_error: 0.6444 - mean_absolute_error: 0.5545
+1760/1760 [==============================] - 0s 134us/step - loss: -0.9093 - cosine_proximity: -0.9093 - mean_squared_error: 0.6441 - mean_absolute_error: 0.5556
+Epoch 96/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9146 - cosine_proximity: -0.9146 - mean_squared_error: 0.7116 - mean_absolute_error: 0.5903
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9124 - cosine_proximity: -0.9124 - mean_squared_error: 0.6738 - mean_absolute_error: 0.5676
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9091 - cosine_proximity: -0.9091 - mean_squared_error: 0.6549 - mean_absolute_error: 0.5591
+1760/1760 [==============================] - 0s 140us/step - loss: -0.9087 - cosine_proximity: -0.9087 - mean_squared_error: 0.6531 - mean_absolute_error: 0.5576
+Epoch 97/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9071 - cosine_proximity: -0.9071 - mean_squared_error: 0.6943 - mean_absolute_error: 0.5735
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9084 - cosine_proximity: -0.9084 - mean_squared_error: 0.6487 - mean_absolute_error: 0.5561
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9081 - cosine_proximity: -0.9081 - mean_squared_error: 0.6472 - mean_absolute_error: 0.5548
+1760/1760 [==============================] - 0s 149us/step - loss: -0.9099 - cosine_proximity: -0.9099 - mean_squared_error: 0.6532 - mean_absolute_error: 0.5577
+Epoch 98/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9185 - cosine_proximity: -0.9185 - mean_squared_error: 0.6628 - mean_absolute_error: 0.5579
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9142 - cosine_proximity: -0.9142 - mean_squared_error: 0.6633 - mean_absolute_error: 0.5615
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9088 - cosine_proximity: -0.9088 - mean_squared_error: 0.6566 - mean_absolute_error: 0.5580
+1760/1760 [==============================] - 0s 146us/step - loss: -0.9099 - cosine_proximity: -0.9099 - mean_squared_error: 0.6535 - mean_absolute_error: 0.5573
+Epoch 99/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9226 - cosine_proximity: -0.9226 - mean_squared_error: 0.6346 - mean_absolute_error: 0.5534
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9184 - cosine_proximity: -0.9184 - mean_squared_error: 0.6350 - mean_absolute_error: 0.5513
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9128 - cosine_proximity: -0.9128 - mean_squared_error: 0.6543 - mean_absolute_error: 0.5584
+1760/1760 [==============================] - 0s 150us/step - loss: -0.9099 - cosine_proximity: -0.9099 - mean_squared_error: 0.6573 - mean_absolute_error: 0.5595
+Epoch 100/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9258 - cosine_proximity: -0.9258 - mean_squared_error: 0.6622 - mean_absolute_error: 0.5633
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9207 - cosine_proximity: -0.9207 - mean_squared_error: 0.6655 - mean_absolute_error: 0.5623
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9120 - cosine_proximity: -0.9120 - mean_squared_error: 0.6626 - mean_absolute_error: 0.5603
+1760/1760 [==============================] - 0s 142us/step - loss: -0.9088 - cosine_proximity: -0.9088 - mean_squared_error: 0.6605 - mean_absolute_error: 0.5593
+Epoch 101/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9199 - cosine_proximity: -0.9199 - mean_squared_error: 0.6383 - mean_absolute_error: 0.5475
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9155 - cosine_proximity: -0.9155 - mean_squared_error: 0.6586 - mean_absolute_error: 0.5578
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9114 - cosine_proximity: -0.9114 - mean_squared_error: 0.6561 - mean_absolute_error: 0.5572
+1760/1760 [==============================] - 0s 150us/step - loss: -0.9107 - cosine_proximity: -0.9107 - mean_squared_error: 0.6569 - mean_absolute_error: 0.5575
+Epoch 102/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9187 - cosine_proximity: -0.9187 - mean_squared_error: 0.6849 - mean_absolute_error: 0.5692
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9179 - cosine_proximity: -0.9179 - mean_squared_error: 0.6669 - mean_absolute_error: 0.5594
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9112 - cosine_proximity: -0.9112 - mean_squared_error: 0.6541 - mean_absolute_error: 0.5551
+1760/1760 [==============================] - 0s 141us/step - loss: -0.9112 - cosine_proximity: -0.9112 - mean_squared_error: 0.6554 - mean_absolute_error: 0.5548
+Epoch 103/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9062 - cosine_proximity: -0.9062 - mean_squared_error: 0.6815 - mean_absolute_error: 0.5627
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9052 - cosine_proximity: -0.9052 - mean_squared_error: 0.6580 - mean_absolute_error: 0.5520
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9081 - cosine_proximity: -0.9081 - mean_squared_error: 0.6668 - mean_absolute_error: 0.5573
+1760/1760 [==============================] - 0s 150us/step - loss: -0.9107 - cosine_proximity: -0.9107 - mean_squared_error: 0.6618 - mean_absolute_error: 0.5560
+Epoch 104/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9144 - cosine_proximity: -0.9144 - mean_squared_error: 0.6420 - mean_absolute_error: 0.5473
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9093 - cosine_proximity: -0.9093 - mean_squared_error: 0.6376 - mean_absolute_error: 0.5456
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9111 - cosine_proximity: -0.9111 - mean_squared_error: 0.6595 - mean_absolute_error: 0.5550
+1760/1760 [==============================] - 0s 156us/step - loss: -0.9122 - cosine_proximity: -0.9122 - mean_squared_error: 0.6604 - mean_absolute_error: 0.5549
+Epoch 105/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8951 - cosine_proximity: -0.8951 - mean_squared_error: 0.6593 - mean_absolute_error: 0.5555
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9064 - cosine_proximity: -0.9064 - mean_squared_error: 0.6669 - mean_absolute_error: 0.5601
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9088 - cosine_proximity: -0.9088 - mean_squared_error: 0.6625 - mean_absolute_error: 0.5582
+1760/1760 [==============================] - 0s 142us/step - loss: -0.9105 - cosine_proximity: -0.9105 - mean_squared_error: 0.6545 - mean_absolute_error: 0.5543
+Epoch 106/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9073 - cosine_proximity: -0.9073 - mean_squared_error: 0.6672 - mean_absolute_error: 0.5579
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9127 - cosine_proximity: -0.9127 - mean_squared_error: 0.6659 - mean_absolute_error: 0.5587
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9087 - cosine_proximity: -0.9087 - mean_squared_error: 0.6586 - mean_absolute_error: 0.5555
+1760/1760 [==============================] - 0s 146us/step - loss: -0.9110 - cosine_proximity: -0.9110 - mean_squared_error: 0.6608 - mean_absolute_error: 0.5563
+Epoch 107/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9101 - cosine_proximity: -0.9101 - mean_squared_error: 0.6504 - mean_absolute_error: 0.5493
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9119 - cosine_proximity: -0.9119 - mean_squared_error: 0.6533 - mean_absolute_error: 0.5501
+1760/1760 [==============================] - 0s 135us/step - loss: -0.9117 - cosine_proximity: -0.9117 - mean_squared_error: 0.6684 - mean_absolute_error: 0.5580
+Epoch 108/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9176 - cosine_proximity: -0.9176 - mean_squared_error: 0.6507 - mean_absolute_error: 0.5466
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9138 - cosine_proximity: -0.9138 - mean_squared_error: 0.6711 - mean_absolute_error: 0.5577
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9134 - cosine_proximity: -0.9134 - mean_squared_error: 0.6758 - mean_absolute_error: 0.5590
+1760/1760 [==============================] - 0s 148us/step - loss: -0.9124 - cosine_proximity: -0.9124 - mean_squared_error: 0.6774 - mean_absolute_error: 0.5601
+Epoch 109/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9207 - cosine_proximity: -0.9207 - mean_squared_error: 0.7221 - mean_absolute_error: 0.5823
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9160 - cosine_proximity: -0.9160 - mean_squared_error: 0.6997 - mean_absolute_error: 0.5693
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9155 - cosine_proximity: -0.9155 - mean_squared_error: 0.6655 - mean_absolute_error: 0.5516
+1760/1760 [==============================] - 0s 153us/step - loss: -0.9130 - cosine_proximity: -0.9130 - mean_squared_error: 0.6835 - mean_absolute_error: 0.5601
+Epoch 110/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9207 - cosine_proximity: -0.9207 - mean_squared_error: 0.6926 - mean_absolute_error: 0.5676
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9112 - cosine_proximity: -0.9112 - mean_squared_error: 0.6771 - mean_absolute_error: 0.5604
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9103 - cosine_proximity: -0.9103 - mean_squared_error: 0.6890 - mean_absolute_error: 0.5657
+1760/1760 [==============================] - 0s 148us/step - loss: -0.9118 - cosine_proximity: -0.9118 - mean_squared_error: 0.6893 - mean_absolute_error: 0.5647
+Epoch 111/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9161 - cosine_proximity: -0.9161 - mean_squared_error: 0.6894 - mean_absolute_error: 0.5663
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9201 - cosine_proximity: -0.9201 - mean_squared_error: 0.6921 - mean_absolute_error: 0.5689
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9156 - cosine_proximity: -0.9156 - mean_squared_error: 0.6829 - mean_absolute_error: 0.5639
+1760/1760 [==============================] - 0s 149us/step - loss: -0.9142 - cosine_proximity: -0.9142 - mean_squared_error: 0.6858 - mean_absolute_error: 0.5643
+Epoch 112/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9239 - cosine_proximity: -0.9239 - mean_squared_error: 0.6886 - mean_absolute_error: 0.5640
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9217 - cosine_proximity: -0.9217 - mean_squared_error: 0.6678 - mean_absolute_error: 0.5543
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9145 - cosine_proximity: -0.9145 - mean_squared_error: 0.6608 - mean_absolute_error: 0.5510
+1760/1760 [==============================] - 0s 140us/step - loss: -0.9125 - cosine_proximity: -0.9125 - mean_squared_error: 0.6672 - mean_absolute_error: 0.5544
+Epoch 113/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9191 - cosine_proximity: -0.9191 - mean_squared_error: 0.7246 - mean_absolute_error: 0.5865
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9150 - cosine_proximity: -0.9150 - mean_squared_error: 0.7030 - mean_absolute_error: 0.5736
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9124 - cosine_proximity: -0.9124 - mean_squared_error: 0.6697 - mean_absolute_error: 0.5557
+1760/1760 [==============================] - 0s 140us/step - loss: -0.9140 - cosine_proximity: -0.9140 - mean_squared_error: 0.6689 - mean_absolute_error: 0.5550
+Epoch 114/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9115 - cosine_proximity: -0.9115 - mean_squared_error: 0.6978 - mean_absolute_error: 0.5659
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9083 - cosine_proximity: -0.9083 - mean_squared_error: 0.6874 - mean_absolute_error: 0.5605
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9081 - cosine_proximity: -0.9081 - mean_squared_error: 0.6833 - mean_absolute_error: 0.5603
+1760/1760 [==============================] - 0s 135us/step - loss: -0.9128 - cosine_proximity: -0.9128 - mean_squared_error: 0.6838 - mean_absolute_error: 0.5597
+Epoch 115/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9171 - cosine_proximity: -0.9171 - mean_squared_error: 0.7337 - mean_absolute_error: 0.5854
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9154 - cosine_proximity: -0.9154 - mean_squared_error: 0.6962 - mean_absolute_error: 0.5666
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9123 - cosine_proximity: -0.9123 - mean_squared_error: 0.6806 - mean_absolute_error: 0.5580
+1760/1760 [==============================] - 0s 148us/step - loss: -0.9141 - cosine_proximity: -0.9141 - mean_squared_error: 0.6853 - mean_absolute_error: 0.5608
+Epoch 116/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9105 - cosine_proximity: -0.9105 - mean_squared_error: 0.6274 - mean_absolute_error: 0.5282
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9092 - cosine_proximity: -0.9092 - mean_squared_error: 0.6684 - mean_absolute_error: 0.5520
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9131 - cosine_proximity: -0.9131 - mean_squared_error: 0.6879 - mean_absolute_error: 0.5611
+1760/1760 [==============================] - 0s 149us/step - loss: -0.9139 - cosine_proximity: -0.9139 - mean_squared_error: 0.6920 - mean_absolute_error: 0.5626
+Epoch 117/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9084 - cosine_proximity: -0.9084 - mean_squared_error: 0.6825 - mean_absolute_error: 0.5587
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9106 - cosine_proximity: -0.9106 - mean_squared_error: 0.6879 - mean_absolute_error: 0.5619
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9124 - cosine_proximity: -0.9124 - mean_squared_error: 0.6937 - mean_absolute_error: 0.5631
+1760/1760 [==============================] - 0s 142us/step - loss: -0.9133 - cosine_proximity: -0.9133 - mean_squared_error: 0.6967 - mean_absolute_error: 0.5650
+Epoch 118/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9173 - cosine_proximity: -0.9173 - mean_squared_error: 0.6965 - mean_absolute_error: 0.5610
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9125 - cosine_proximity: -0.9125 - mean_squared_error: 0.6762 - mean_absolute_error: 0.5536
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9123 - cosine_proximity: -0.9123 - mean_squared_error: 0.7115 - mean_absolute_error: 0.5717
+1760/1760 [==============================] - 0s 130us/step - loss: -0.9134 - cosine_proximity: -0.9134 - mean_squared_error: 0.7069 - mean_absolute_error: 0.5680
+Epoch 119/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9135 - cosine_proximity: -0.9135 - mean_squared_error: 0.7040 - mean_absolute_error: 0.5693
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9174 - cosine_proximity: -0.9174 - mean_squared_error: 0.7323 - mean_absolute_error: 0.5809
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9144 - cosine_proximity: -0.9144 - mean_squared_error: 0.7065 - mean_absolute_error: 0.5673
+1760/1760 [==============================] - 0s 146us/step - loss: -0.9145 - cosine_proximity: -0.9145 - mean_squared_error: 0.7046 - mean_absolute_error: 0.5663
+Epoch 120/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9060 - cosine_proximity: -0.9060 - mean_squared_error: 0.6555 - mean_absolute_error: 0.5430
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9123 - cosine_proximity: -0.9123 - mean_squared_error: 0.7018 - mean_absolute_error: 0.5645
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9143 - cosine_proximity: -0.9143 - mean_squared_error: 0.6989 - mean_absolute_error: 0.5645
+1760/1760 [==============================] - 0s 147us/step - loss: -0.9141 - cosine_proximity: -0.9141 - mean_squared_error: 0.6906 - mean_absolute_error: 0.5619
+Epoch 121/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9132 - cosine_proximity: -0.9132 - mean_squared_error: 0.7126 - mean_absolute_error: 0.5711
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9152 - cosine_proximity: -0.9152 - mean_squared_error: 0.7066 - mean_absolute_error: 0.5682
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9145 - cosine_proximity: -0.9145 - mean_squared_error: 0.7040 - mean_absolute_error: 0.5675
+1760/1760 [==============================] - 0s 137us/step - loss: -0.9144 - cosine_proximity: -0.9144 - mean_squared_error: 0.6984 - mean_absolute_error: 0.5654
+Epoch 122/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9185 - cosine_proximity: -0.9185 - mean_squared_error: 0.7174 - mean_absolute_error: 0.5756
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9174 - cosine_proximity: -0.9174 - mean_squared_error: 0.7086 - mean_absolute_error: 0.5706
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9179 - cosine_proximity: -0.9179 - mean_squared_error: 0.7137 - mean_absolute_error: 0.5720
+1760/1760 [==============================] - 0s 147us/step - loss: -0.9151 - cosine_proximity: -0.9151 - mean_squared_error: 0.6941 - mean_absolute_error: 0.5628
+Epoch 123/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.8999 - cosine_proximity: -0.8999 - mean_squared_error: 0.6739 - mean_absolute_error: 0.5502
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9089 - cosine_proximity: -0.9089 - mean_squared_error: 0.6777 - mean_absolute_error: 0.5559
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9130 - cosine_proximity: -0.9130 - mean_squared_error: 0.6900 - mean_absolute_error: 0.5592
+1760/1760 [==============================] - 0s 151us/step - loss: -0.9149 - cosine_proximity: -0.9149 - mean_squared_error: 0.6929 - mean_absolute_error: 0.5613
+Epoch 124/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9139 - cosine_proximity: -0.9139 - mean_squared_error: 0.7331 - mean_absolute_error: 0.5768
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9142 - cosine_proximity: -0.9142 - mean_squared_error: 0.6989 - mean_absolute_error: 0.5621
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9141 - cosine_proximity: -0.9141 - mean_squared_error: 0.6963 - mean_absolute_error: 0.5610
+1760/1760 [==============================] - 0s 141us/step - loss: -0.9152 - cosine_proximity: -0.9152 - mean_squared_error: 0.6930 - mean_absolute_error: 0.5593
+Epoch 125/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9148 - cosine_proximity: -0.9148 - mean_squared_error: 0.6821 - mean_absolute_error: 0.5551
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9170 - cosine_proximity: -0.9170 - mean_squared_error: 0.6978 - mean_absolute_error: 0.5619
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9175 - cosine_proximity: -0.9175 - mean_squared_error: 0.6874 - mean_absolute_error: 0.5577
+1760/1760 [==============================] - 0s 132us/step - loss: -0.9149 - cosine_proximity: -0.9149 - mean_squared_error: 0.6855 - mean_absolute_error: 0.5561
+Epoch 126/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9226 - cosine_proximity: -0.9226 - mean_squared_error: 0.7268 - mean_absolute_error: 0.5725
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9155 - cosine_proximity: -0.9155 - mean_squared_error: 0.6844 - mean_absolute_error: 0.5514
+1760/1760 [==============================] - 0s 132us/step - loss: -0.9163 - cosine_proximity: -0.9163 - mean_squared_error: 0.6939 - mean_absolute_error: 0.5582
+Epoch 127/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9250 - cosine_proximity: -0.9250 - mean_squared_error: 0.6997 - mean_absolute_error: 0.5672
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9137 - cosine_proximity: -0.9137 - mean_squared_error: 0.6964 - mean_absolute_error: 0.5622
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9163 - cosine_proximity: -0.9163 - mean_squared_error: 0.6982 - mean_absolute_error: 0.5626
+1760/1760 [==============================] - 0s 148us/step - loss: -0.9158 - cosine_proximity: -0.9158 - mean_squared_error: 0.6919 - mean_absolute_error: 0.5593
+Epoch 128/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9078 - cosine_proximity: -0.9078 - mean_squared_error: 0.6501 - mean_absolute_error: 0.5407
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9173 - cosine_proximity: -0.9173 - mean_squared_error: 0.7142 - mean_absolute_error: 0.5702
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9169 - cosine_proximity: -0.9169 - mean_squared_error: 0.7037 - mean_absolute_error: 0.5643
+1760/1760 [==============================] - 0s 141us/step - loss: -0.9157 - cosine_proximity: -0.9157 - mean_squared_error: 0.6982 - mean_absolute_error: 0.5618
+Epoch 129/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9099 - cosine_proximity: -0.9099 - mean_squared_error: 0.7052 - mean_absolute_error: 0.5706
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9082 - cosine_proximity: -0.9082 - mean_squared_error: 0.7116 - mean_absolute_error: 0.5701
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9127 - cosine_proximity: -0.9127 - mean_squared_error: 0.7017 - mean_absolute_error: 0.5636
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9159 - cosine_proximity: -0.9159 - mean_squared_error: 0.6907 - mean_absolute_error: 0.5582
+Epoch 130/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9112 - cosine_proximity: -0.9112 - mean_squared_error: 0.6793 - mean_absolute_error: 0.5501
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9143 - cosine_proximity: -0.9143 - mean_squared_error: 0.6856 - mean_absolute_error: 0.5527
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9147 - cosine_proximity: -0.9147 - mean_squared_error: 0.6936 - mean_absolute_error: 0.5589
+1760/1760 [==============================] - 0s 154us/step - loss: -0.9162 - cosine_proximity: -0.9162 - mean_squared_error: 0.6962 - mean_absolute_error: 0.5605
+Epoch 131/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9154 - cosine_proximity: -0.9154 - mean_squared_error: 0.7117 - mean_absolute_error: 0.5680
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9159 - cosine_proximity: -0.9159 - mean_squared_error: 0.7101 - mean_absolute_error: 0.5669
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9164 - cosine_proximity: -0.9164 - mean_squared_error: 0.6884 - mean_absolute_error: 0.5565
+1760/1760 [==============================] - 0s 142us/step - loss: -0.9173 - cosine_proximity: -0.9173 - mean_squared_error: 0.6967 - mean_absolute_error: 0.5609
+Epoch 132/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9308 - cosine_proximity: -0.9308 - mean_squared_error: 0.7771 - mean_absolute_error: 0.5951
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9227 - cosine_proximity: -0.9227 - mean_squared_error: 0.7188 - mean_absolute_error: 0.5686
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9179 - cosine_proximity: -0.9179 - mean_squared_error: 0.6912 - mean_absolute_error: 0.5577
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9171 - cosine_proximity: -0.9171 - mean_squared_error: 0.6938 - mean_absolute_error: 0.5593
+Epoch 133/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9090 - cosine_proximity: -0.9090 - mean_squared_error: 0.6882 - mean_absolute_error: 0.5595
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9131 - cosine_proximity: -0.9131 - mean_squared_error: 0.6987 - mean_absolute_error: 0.5612
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9164 - cosine_proximity: -0.9164 - mean_squared_error: 0.6993 - mean_absolute_error: 0.5610
+1760/1760 [==============================] - 0s 157us/step - loss: -0.9173 - cosine_proximity: -0.9173 - mean_squared_error: 0.6998 - mean_absolute_error: 0.5612
+Epoch 134/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9196 - cosine_proximity: -0.9196 - mean_squared_error: 0.7178 - mean_absolute_error: 0.5731
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9184 - cosine_proximity: -0.9184 - mean_squared_error: 0.7199 - mean_absolute_error: 0.5696
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9175 - cosine_proximity: -0.9175 - mean_squared_error: 0.7045 - mean_absolute_error: 0.5622
+1760/1760 [==============================] - 0s 152us/step - loss: -0.9184 - cosine_proximity: -0.9184 - mean_squared_error: 0.6991 - mean_absolute_error: 0.5605
+Epoch 135/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9160 - cosine_proximity: -0.9160 - mean_squared_error: 0.6562 - mean_absolute_error: 0.5405
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9202 - cosine_proximity: -0.9202 - mean_squared_error: 0.6863 - mean_absolute_error: 0.5542
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9177 - cosine_proximity: -0.9177 - mean_squared_error: 0.6989 - mean_absolute_error: 0.5593
+1760/1760 [==============================] - 0s 146us/step - loss: -0.9161 - cosine_proximity: -0.9161 - mean_squared_error: 0.7018 - mean_absolute_error: 0.5603
+Epoch 136/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9273 - cosine_proximity: -0.9273 - mean_squared_error: 0.7016 - mean_absolute_error: 0.5602
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9232 - cosine_proximity: -0.9232 - mean_squared_error: 0.7018 - mean_absolute_error: 0.5594
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9174 - cosine_proximity: -0.9174 - mean_squared_error: 0.7034 - mean_absolute_error: 0.5602
+1760/1760 [==============================] - 0s 147us/step - loss: -0.9170 - cosine_proximity: -0.9170 - mean_squared_error: 0.7006 - mean_absolute_error: 0.5595
+Epoch 137/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9240 - cosine_proximity: -0.9240 - mean_squared_error: 0.7235 - mean_absolute_error: 0.5753
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9195 - cosine_proximity: -0.9195 - mean_squared_error: 0.7002 - mean_absolute_error: 0.5604
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9170 - cosine_proximity: -0.9170 - mean_squared_error: 0.6964 - mean_absolute_error: 0.5580
+1760/1760 [==============================] - 0s 142us/step - loss: -0.9183 - cosine_proximity: -0.9183 - mean_squared_error: 0.6993 - mean_absolute_error: 0.5598
+Epoch 138/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9136 - cosine_proximity: -0.9136 - mean_squared_error: 0.6974 - mean_absolute_error: 0.5501
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9187 - cosine_proximity: -0.9187 - mean_squared_error: 0.7077 - mean_absolute_error: 0.5618
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9187 - cosine_proximity: -0.9187 - mean_squared_error: 0.6991 - mean_absolute_error: 0.5590
+1760/1760 [==============================] - 0s 143us/step - loss: -0.9193 - cosine_proximity: -0.9193 - mean_squared_error: 0.6937 - mean_absolute_error: 0.5567
+Epoch 139/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9267 - cosine_proximity: -0.9267 - mean_squared_error: 0.7419 - mean_absolute_error: 0.5789
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9195 - cosine_proximity: -0.9195 - mean_squared_error: 0.7001 - mean_absolute_error: 0.5595
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9200 - cosine_proximity: -0.9200 - mean_squared_error: 0.7061 - mean_absolute_error: 0.5615
+1760/1760 [==============================] - 0s 148us/step - loss: -0.9186 - cosine_proximity: -0.9186 - mean_squared_error: 0.7052 - mean_absolute_error: 0.5617
+Epoch 140/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9186 - cosine_proximity: -0.9186 - mean_squared_error: 0.6852 - mean_absolute_error: 0.5536
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9169 - cosine_proximity: -0.9169 - mean_squared_error: 0.7032 - mean_absolute_error: 0.5609
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9191 - cosine_proximity: -0.9191 - mean_squared_error: 0.7049 - mean_absolute_error: 0.5628
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9191 - cosine_proximity: -0.9191 - mean_squared_error: 0.6895 - mean_absolute_error: 0.5553
+Epoch 141/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9161 - cosine_proximity: -0.9161 - mean_squared_error: 0.7097 - mean_absolute_error: 0.5666
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9209 - cosine_proximity: -0.9209 - mean_squared_error: 0.7080 - mean_absolute_error: 0.5625
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9162 - cosine_proximity: -0.9162 - mean_squared_error: 0.6939 - mean_absolute_error: 0.5568
+1760/1760 [==============================] - 0s 152us/step - loss: -0.9178 - cosine_proximity: -0.9178 - mean_squared_error: 0.7028 - mean_absolute_error: 0.5607
+Epoch 142/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9233 - cosine_proximity: -0.9233 - mean_squared_error: 0.7034 - mean_absolute_error: 0.5611
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9203 - cosine_proximity: -0.9203 - mean_squared_error: 0.7067 - mean_absolute_error: 0.5635
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9229 - cosine_proximity: -0.9229 - mean_squared_error: 0.7057 - mean_absolute_error: 0.5628
+1760/1760 [==============================] - 0s 147us/step - loss: -0.9178 - cosine_proximity: -0.9178 - mean_squared_error: 0.7013 - mean_absolute_error: 0.5599
+Epoch 143/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9261 - cosine_proximity: -0.9261 - mean_squared_error: 0.6806 - mean_absolute_error: 0.5479
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9207 - cosine_proximity: -0.9207 - mean_squared_error: 0.6915 - mean_absolute_error: 0.5518
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9175 - cosine_proximity: -0.9175 - mean_squared_error: 0.7072 - mean_absolute_error: 0.5596
+1760/1760 [==============================] - 0s 149us/step - loss: -0.9182 - cosine_proximity: -0.9182 - mean_squared_error: 0.7130 - mean_absolute_error: 0.5638
+Epoch 144/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9187 - cosine_proximity: -0.9187 - mean_squared_error: 0.7041 - mean_absolute_error: 0.5589
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9136 - cosine_proximity: -0.9136 - mean_squared_error: 0.6947 - mean_absolute_error: 0.5543
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9193 - cosine_proximity: -0.9193 - mean_squared_error: 0.7163 - mean_absolute_error: 0.5663
+1760/1760 [==============================] - 0s 135us/step - loss: -0.9186 - cosine_proximity: -0.9186 - mean_squared_error: 0.7212 - mean_absolute_error: 0.5678
+Epoch 145/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9139 - cosine_proximity: -0.9139 - mean_squared_error: 0.6919 - mean_absolute_error: 0.5571
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9167 - cosine_proximity: -0.9167 - mean_squared_error: 0.7233 - mean_absolute_error: 0.5698
+1760/1760 [==============================] - 0s 135us/step - loss: -0.9183 - cosine_proximity: -0.9183 - mean_squared_error: 0.7254 - mean_absolute_error: 0.5692
+Epoch 146/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9233 - cosine_proximity: -0.9233 - mean_squared_error: 0.7453 - mean_absolute_error: 0.5771
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9161 - cosine_proximity: -0.9161 - mean_squared_error: 0.6880 - mean_absolute_error: 0.5512
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9181 - cosine_proximity: -0.9181 - mean_squared_error: 0.6967 - mean_absolute_error: 0.5553
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9197 - cosine_proximity: -0.9197 - mean_squared_error: 0.7185 - mean_absolute_error: 0.5655
+Epoch 147/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9193 - cosine_proximity: -0.9193 - mean_squared_error: 0.7446 - mean_absolute_error: 0.5783
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9188 - cosine_proximity: -0.9188 - mean_squared_error: 0.7487 - mean_absolute_error: 0.5804
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9189 - cosine_proximity: -0.9189 - mean_squared_error: 0.7349 - mean_absolute_error: 0.5703
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9183 - cosine_proximity: -0.9183 - mean_squared_error: 0.7275 - mean_absolute_error: 0.5682
+Epoch 148/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9185 - cosine_proximity: -0.9185 - mean_squared_error: 0.6996 - mean_absolute_error: 0.5527
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9182 - cosine_proximity: -0.9182 - mean_squared_error: 0.6919 - mean_absolute_error: 0.5511
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9202 - cosine_proximity: -0.9202 - mean_squared_error: 0.7103 - mean_absolute_error: 0.5600
+1760/1760 [==============================] - 0s 142us/step - loss: -0.9196 - cosine_proximity: -0.9196 - mean_squared_error: 0.7175 - mean_absolute_error: 0.5644
+Epoch 149/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9185 - cosine_proximity: -0.9185 - mean_squared_error: 0.7326 - mean_absolute_error: 0.5693
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9152 - cosine_proximity: -0.9152 - mean_squared_error: 0.7162 - mean_absolute_error: 0.5639
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9210 - cosine_proximity: -0.9210 - mean_squared_error: 0.7177 - mean_absolute_error: 0.5649
+1760/1760 [==============================] - 0s 147us/step - loss: -0.9208 - cosine_proximity: -0.9208 - mean_squared_error: 0.7087 - mean_absolute_error: 0.5608
+Epoch 150/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9174 - cosine_proximity: -0.9174 - mean_squared_error: 0.7121 - mean_absolute_error: 0.5607
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9206 - cosine_proximity: -0.9206 - mean_squared_error: 0.6941 - mean_absolute_error: 0.5541
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9219 - cosine_proximity: -0.9219 - mean_squared_error: 0.7179 - mean_absolute_error: 0.5649
+1760/1760 [==============================] - 0s 143us/step - loss: -0.9202 - cosine_proximity: -0.9202 - mean_squared_error: 0.7127 - mean_absolute_error: 0.5620
+Epoch 151/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9126 - cosine_proximity: -0.9126 - mean_squared_error: 0.6902 - mean_absolute_error: 0.5517
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9161 - cosine_proximity: -0.9161 - mean_squared_error: 0.7008 - mean_absolute_error: 0.5576
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9202 - cosine_proximity: -0.9202 - mean_squared_error: 0.6988 - mean_absolute_error: 0.5556
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9188 - cosine_proximity: -0.9188 - mean_squared_error: 0.6996 - mean_absolute_error: 0.5570
+Epoch 152/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9109 - cosine_proximity: -0.9109 - mean_squared_error: 0.6763 - mean_absolute_error: 0.5374
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9109 - cosine_proximity: -0.9109 - mean_squared_error: 0.7054 - mean_absolute_error: 0.5556
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9179 - cosine_proximity: -0.9179 - mean_squared_error: 0.7197 - mean_absolute_error: 0.5627
+1760/1760 [==============================] - 0s 150us/step - loss: -0.9203 - cosine_proximity: -0.9203 - mean_squared_error: 0.7179 - mean_absolute_error: 0.5620
+Epoch 153/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9183 - cosine_proximity: -0.9183 - mean_squared_error: 0.7334 - mean_absolute_error: 0.5720
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9151 - cosine_proximity: -0.9151 - mean_squared_error: 0.7054 - mean_absolute_error: 0.5599
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9187 - cosine_proximity: -0.9187 - mean_squared_error: 0.7209 - mean_absolute_error: 0.5670
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9193 - cosine_proximity: -0.9193 - mean_squared_error: 0.7131 - mean_absolute_error: 0.5640
+Epoch 154/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9253 - cosine_proximity: -0.9253 - mean_squared_error: 0.6940 - mean_absolute_error: 0.5565
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9201 - cosine_proximity: -0.9201 - mean_squared_error: 0.6892 - mean_absolute_error: 0.5532
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9209 - cosine_proximity: -0.9209 - mean_squared_error: 0.6993 - mean_absolute_error: 0.5570
+1760/1760 [==============================] - 0s 146us/step - loss: -0.9194 - cosine_proximity: -0.9194 - mean_squared_error: 0.7058 - mean_absolute_error: 0.5609
+Epoch 155/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9329 - cosine_proximity: -0.9329 - mean_squared_error: 0.6826 - mean_absolute_error: 0.5484
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9246 - cosine_proximity: -0.9246 - mean_squared_error: 0.6860 - mean_absolute_error: 0.5510
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9208 - cosine_proximity: -0.9208 - mean_squared_error: 0.6945 - mean_absolute_error: 0.5527
+1760/1760 [==============================] - 0s 152us/step - loss: -0.9198 - cosine_proximity: -0.9198 - mean_squared_error: 0.7042 - mean_absolute_error: 0.5591
+Epoch 156/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9262 - cosine_proximity: -0.9262 - mean_squared_error: 0.7307 - mean_absolute_error: 0.5711
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9250 - cosine_proximity: -0.9250 - mean_squared_error: 0.7068 - mean_absolute_error: 0.5571
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9203 - cosine_proximity: -0.9203 - mean_squared_error: 0.7194 - mean_absolute_error: 0.5643
+1760/1760 [==============================] - 0s 151us/step - loss: -0.9193 - cosine_proximity: -0.9193 - mean_squared_error: 0.7098 - mean_absolute_error: 0.5597
+Epoch 157/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9095 - cosine_proximity: -0.9095 - mean_squared_error: 0.7012 - mean_absolute_error: 0.5584
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9174 - cosine_proximity: -0.9174 - mean_squared_error: 0.7049 - mean_absolute_error: 0.5574
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9231 - cosine_proximity: -0.9231 - mean_squared_error: 0.7126 - mean_absolute_error: 0.5625
+1760/1760 [==============================] - 0s 140us/step - loss: -0.9209 - cosine_proximity: -0.9209 - mean_squared_error: 0.7099 - mean_absolute_error: 0.5607
+Epoch 158/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9194 - cosine_proximity: -0.9194 - mean_squared_error: 0.7752 - mean_absolute_error: 0.5857
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9207 - cosine_proximity: -0.9207 - mean_squared_error: 0.7138 - mean_absolute_error: 0.5602
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9203 - cosine_proximity: -0.9203 - mean_squared_error: 0.7086 - mean_absolute_error: 0.5584
+1760/1760 [==============================] - 0s 157us/step - loss: -0.9206 - cosine_proximity: -0.9206 - mean_squared_error: 0.7105 - mean_absolute_error: 0.5600
+Epoch 159/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9240 - cosine_proximity: -0.9240 - mean_squared_error: 0.7020 - mean_absolute_error: 0.5575
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9264 - cosine_proximity: -0.9264 - mean_squared_error: 0.7121 - mean_absolute_error: 0.5637
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9202 - cosine_proximity: -0.9202 - mean_squared_error: 0.7143 - mean_absolute_error: 0.5656
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9204 - cosine_proximity: -0.9204 - mean_squared_error: 0.7022 - mean_absolute_error: 0.5585
+Epoch 160/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9168 - cosine_proximity: -0.9168 - mean_squared_error: 0.6470 - mean_absolute_error: 0.5314
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9186 - cosine_proximity: -0.9186 - mean_squared_error: 0.6726 - mean_absolute_error: 0.5406
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9227 - cosine_proximity: -0.9227 - mean_squared_error: 0.6888 - mean_absolute_error: 0.5504
+1760/1760 [==============================] - 0s 147us/step - loss: -0.9205 - cosine_proximity: -0.9205 - mean_squared_error: 0.6923 - mean_absolute_error: 0.5525
+Epoch 161/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9266 - cosine_proximity: -0.9266 - mean_squared_error: 0.6754 - mean_absolute_error: 0.5420
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9256 - cosine_proximity: -0.9256 - mean_squared_error: 0.7097 - mean_absolute_error: 0.5593
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9204 - cosine_proximity: -0.9204 - mean_squared_error: 0.7014 - mean_absolute_error: 0.5544
+1760/1760 [==============================] - 0s 141us/step - loss: -0.9204 - cosine_proximity: -0.9204 - mean_squared_error: 0.6997 - mean_absolute_error: 0.5537
+Epoch 162/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9225 - cosine_proximity: -0.9225 - mean_squared_error: 0.7247 - mean_absolute_error: 0.5620
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9240 - cosine_proximity: -0.9240 - mean_squared_error: 0.7295 - mean_absolute_error: 0.5671
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9231 - cosine_proximity: -0.9231 - mean_squared_error: 0.7289 - mean_absolute_error: 0.5659
+1760/1760 [==============================] - 0s 149us/step - loss: -0.9224 - cosine_proximity: -0.9224 - mean_squared_error: 0.7181 - mean_absolute_error: 0.5602
+Epoch 163/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9144 - cosine_proximity: -0.9144 - mean_squared_error: 0.6905 - mean_absolute_error: 0.5531
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9210 - cosine_proximity: -0.9210 - mean_squared_error: 0.6953 - mean_absolute_error: 0.5515
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9189 - cosine_proximity: -0.9189 - mean_squared_error: 0.7015 - mean_absolute_error: 0.5550
+1760/1760 [==============================] - 0s 133us/step - loss: -0.9206 - cosine_proximity: -0.9206 - mean_squared_error: 0.7166 - mean_absolute_error: 0.5621
+Epoch 164/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9159 - cosine_proximity: -0.9159 - mean_squared_error: 0.7063 - mean_absolute_error: 0.5567
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9237 - cosine_proximity: -0.9237 - mean_squared_error: 0.7095 - mean_absolute_error: 0.5608
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9228 - cosine_proximity: -0.9228 - mean_squared_error: 0.7163 - mean_absolute_error: 0.5639
+1760/1760 [==============================] - 0s 151us/step - loss: -0.9221 - cosine_proximity: -0.9221 - mean_squared_error: 0.7145 - mean_absolute_error: 0.5626
+Epoch 165/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9152 - cosine_proximity: -0.9152 - mean_squared_error: 0.7654 - mean_absolute_error: 0.5861
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9235 - cosine_proximity: -0.9235 - mean_squared_error: 0.7512 - mean_absolute_error: 0.5773
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9191 - cosine_proximity: -0.9191 - mean_squared_error: 0.7231 - mean_absolute_error: 0.5630
+1760/1760 [==============================] - 0s 137us/step - loss: -0.9211 - cosine_proximity: -0.9211 - mean_squared_error: 0.7230 - mean_absolute_error: 0.5636
+Epoch 166/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9198 - cosine_proximity: -0.9198 - mean_squared_error: 0.7505 - mean_absolute_error: 0.5754
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9213 - cosine_proximity: -0.9213 - mean_squared_error: 0.7178 - mean_absolute_error: 0.5619
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9211 - cosine_proximity: -0.9211 - mean_squared_error: 0.7303 - mean_absolute_error: 0.5674
+1760/1760 [==============================] - 0s 146us/step - loss: -0.9221 - cosine_proximity: -0.9221 - mean_squared_error: 0.7288 - mean_absolute_error: 0.5661
+Epoch 167/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9270 - cosine_proximity: -0.9270 - mean_squared_error: 0.7718 - mean_absolute_error: 0.5877
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9267 - cosine_proximity: -0.9267 - mean_squared_error: 0.7613 - mean_absolute_error: 0.5823
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9228 - cosine_proximity: -0.9228 - mean_squared_error: 0.7261 - mean_absolute_error: 0.5651
+1760/1760 [==============================] - 0s 148us/step - loss: -0.9209 - cosine_proximity: -0.9209 - mean_squared_error: 0.7293 - mean_absolute_error: 0.5655
+Epoch 168/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9202 - cosine_proximity: -0.9202 - mean_squared_error: 0.7403 - mean_absolute_error: 0.5680
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9189 - cosine_proximity: -0.9189 - mean_squared_error: 0.7246 - mean_absolute_error: 0.5599
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9233 - cosine_proximity: -0.9233 - mean_squared_error: 0.7448 - mean_absolute_error: 0.5718
+1760/1760 [==============================] - 0s 144us/step - loss: -0.9229 - cosine_proximity: -0.9229 - mean_squared_error: 0.7354 - mean_absolute_error: 0.5666
+Epoch 169/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9304 - cosine_proximity: -0.9304 - mean_squared_error: 0.7469 - mean_absolute_error: 0.5783
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9289 - cosine_proximity: -0.9289 - mean_squared_error: 0.7458 - mean_absolute_error: 0.5766
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9246 - cosine_proximity: -0.9246 - mean_squared_error: 0.7169 - mean_absolute_error: 0.5616
+1760/1760 [==============================] - 0s 134us/step - loss: -0.9212 - cosine_proximity: -0.9212 - mean_squared_error: 0.7181 - mean_absolute_error: 0.5605
+Epoch 170/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9230 - cosine_proximity: -0.9230 - mean_squared_error: 0.7054 - mean_absolute_error: 0.5538
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9241 - cosine_proximity: -0.9241 - mean_squared_error: 0.7181 - mean_absolute_error: 0.5619
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9238 - cosine_proximity: -0.9238 - mean_squared_error: 0.7080 - mean_absolute_error: 0.5565
+1760/1760 [==============================] - 0s 131us/step - loss: -0.9218 - cosine_proximity: -0.9218 - mean_squared_error: 0.7122 - mean_absolute_error: 0.5583
+Epoch 171/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9222 - cosine_proximity: -0.9222 - mean_squared_error: 0.6939 - mean_absolute_error: 0.5526
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9214 - cosine_proximity: -0.9214 - mean_squared_error: 0.6931 - mean_absolute_error: 0.5511
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9202 - cosine_proximity: -0.9202 - mean_squared_error: 0.7222 - mean_absolute_error: 0.5617
+1760/1760 [==============================] - 0s 148us/step - loss: -0.9208 - cosine_proximity: -0.9208 - mean_squared_error: 0.7228 - mean_absolute_error: 0.5615
+Epoch 172/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9166 - cosine_proximity: -0.9166 - mean_squared_error: 0.7447 - mean_absolute_error: 0.5749
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9218 - cosine_proximity: -0.9218 - mean_squared_error: 0.7294 - mean_absolute_error: 0.5666
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9245 - cosine_proximity: -0.9245 - mean_squared_error: 0.7142 - mean_absolute_error: 0.5603
+1760/1760 [==============================] - 0s 150us/step - loss: -0.9231 - cosine_proximity: -0.9231 - mean_squared_error: 0.7133 - mean_absolute_error: 0.5595
+Epoch 173/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9294 - cosine_proximity: -0.9294 - mean_squared_error: 0.6941 - mean_absolute_error: 0.5560
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9254 - cosine_proximity: -0.9254 - mean_squared_error: 0.6964 - mean_absolute_error: 0.5542
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9244 - cosine_proximity: -0.9244 - mean_squared_error: 0.7100 - mean_absolute_error: 0.5589
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9236 - cosine_proximity: -0.9236 - mean_squared_error: 0.7171 - mean_absolute_error: 0.5618
+Epoch 174/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9257 - cosine_proximity: -0.9257 - mean_squared_error: 0.6765 - mean_absolute_error: 0.5396
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9209 - cosine_proximity: -0.9209 - mean_squared_error: 0.7064 - mean_absolute_error: 0.5541
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9220 - cosine_proximity: -0.9220 - mean_squared_error: 0.7071 - mean_absolute_error: 0.5551
+1760/1760 [==============================] - 0s 154us/step - loss: -0.9222 - cosine_proximity: -0.9222 - mean_squared_error: 0.7122 - mean_absolute_error: 0.5585
+Epoch 175/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9179 - cosine_proximity: -0.9179 - mean_squared_error: 0.6949 - mean_absolute_error: 0.5510
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9220 - cosine_proximity: -0.9220 - mean_squared_error: 0.6961 - mean_absolute_error: 0.5528
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9226 - cosine_proximity: -0.9226 - mean_squared_error: 0.7130 - mean_absolute_error: 0.5585
+1760/1760 [==============================] - 0s 137us/step - loss: -0.9237 - cosine_proximity: -0.9237 - mean_squared_error: 0.7159 - mean_absolute_error: 0.5604
+Epoch 176/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9090 - cosine_proximity: -0.9090 - mean_squared_error: 0.6782 - mean_absolute_error: 0.5411
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9194 - cosine_proximity: -0.9194 - mean_squared_error: 0.7132 - mean_absolute_error: 0.5594
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9238 - cosine_proximity: -0.9238 - mean_squared_error: 0.7199 - mean_absolute_error: 0.5626
+1760/1760 [==============================] - 0s 141us/step - loss: -0.9237 - cosine_proximity: -0.9237 - mean_squared_error: 0.7138 - mean_absolute_error: 0.5603
+Epoch 177/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9341 - cosine_proximity: -0.9341 - mean_squared_error: 0.6936 - mean_absolute_error: 0.5448
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9314 - cosine_proximity: -0.9314 - mean_squared_error: 0.7306 - mean_absolute_error: 0.5666
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9252 - cosine_proximity: -0.9252 - mean_squared_error: 0.7196 - mean_absolute_error: 0.5621
+1760/1760 [==============================] - 0s 152us/step - loss: -0.9236 - cosine_proximity: -0.9236 - mean_squared_error: 0.7105 - mean_absolute_error: 0.5577
+Epoch 178/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9180 - cosine_proximity: -0.9180 - mean_squared_error: 0.7078 - mean_absolute_error: 0.5603
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9244 - cosine_proximity: -0.9244 - mean_squared_error: 0.6868 - mean_absolute_error: 0.5455
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9240 - cosine_proximity: -0.9240 - mean_squared_error: 0.7083 - mean_absolute_error: 0.5571
+1760/1760 [==============================] - 0s 156us/step - loss: -0.9236 - cosine_proximity: -0.9236 - mean_squared_error: 0.7031 - mean_absolute_error: 0.5541
+Epoch 179/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9242 - cosine_proximity: -0.9242 - mean_squared_error: 0.7534 - mean_absolute_error: 0.5728
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9174 - cosine_proximity: -0.9174 - mean_squared_error: 0.7255 - mean_absolute_error: 0.5616
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9231 - cosine_proximity: -0.9231 - mean_squared_error: 0.7095 - mean_absolute_error: 0.5557
+1760/1760 [==============================] - 0s 142us/step - loss: -0.9224 - cosine_proximity: -0.9224 - mean_squared_error: 0.6999 - mean_absolute_error: 0.5512
+Epoch 180/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9379 - cosine_proximity: -0.9379 - mean_squared_error: 0.6458 - mean_absolute_error: 0.5264
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9262 - cosine_proximity: -0.9262 - mean_squared_error: 0.6599 - mean_absolute_error: 0.5312
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9276 - cosine_proximity: -0.9276 - mean_squared_error: 0.6879 - mean_absolute_error: 0.5446
+1760/1760 [==============================] - 0s 144us/step - loss: -0.9245 - cosine_proximity: -0.9245 - mean_squared_error: 0.6937 - mean_absolute_error: 0.5478
+Epoch 181/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9288 - cosine_proximity: -0.9288 - mean_squared_error: 0.7798 - mean_absolute_error: 0.5864
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9337 - cosine_proximity: -0.9337 - mean_squared_error: 0.7566 - mean_absolute_error: 0.5769
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9244 - cosine_proximity: -0.9244 - mean_squared_error: 0.7157 - mean_absolute_error: 0.5579
+1760/1760 [==============================] - 0s 158us/step - loss: -0.9230 - cosine_proximity: -0.9230 - mean_squared_error: 0.7087 - mean_absolute_error: 0.5544
+Epoch 182/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9180 - cosine_proximity: -0.9180 - mean_squared_error: 0.6700 - mean_absolute_error: 0.5338
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9253 - cosine_proximity: -0.9253 - mean_squared_error: 0.6934 - mean_absolute_error: 0.5471
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9250 - cosine_proximity: -0.9250 - mean_squared_error: 0.7110 - mean_absolute_error: 0.5560
+1760/1760 [==============================] - 0s 151us/step - loss: -0.9226 - cosine_proximity: -0.9226 - mean_squared_error: 0.7122 - mean_absolute_error: 0.5569
+Epoch 183/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9336 - cosine_proximity: -0.9336 - mean_squared_error: 0.7421 - mean_absolute_error: 0.5695
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9305 - cosine_proximity: -0.9305 - mean_squared_error: 0.7285 - mean_absolute_error: 0.5635
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9266 - cosine_proximity: -0.9266 - mean_squared_error: 0.7141 - mean_absolute_error: 0.5563
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9245 - cosine_proximity: -0.9245 - mean_squared_error: 0.7123 - mean_absolute_error: 0.5561
+Epoch 184/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9253 - cosine_proximity: -0.9253 - mean_squared_error: 0.7019 - mean_absolute_error: 0.5538
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9286 - cosine_proximity: -0.9286 - mean_squared_error: 0.7393 - mean_absolute_error: 0.5690
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9260 - cosine_proximity: -0.9260 - mean_squared_error: 0.7174 - mean_absolute_error: 0.5583
+1760/1760 [==============================] - 0s 155us/step - loss: -0.9238 - cosine_proximity: -0.9238 - mean_squared_error: 0.7139 - mean_absolute_error: 0.5568
+Epoch 185/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9177 - cosine_proximity: -0.9177 - mean_squared_error: 0.6768 - mean_absolute_error: 0.5458
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9221 - cosine_proximity: -0.9221 - mean_squared_error: 0.7275 - mean_absolute_error: 0.5662
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9270 - cosine_proximity: -0.9270 - mean_squared_error: 0.7337 - mean_absolute_error: 0.5672
+1760/1760 [==============================] - 0s 155us/step - loss: -0.9242 - cosine_proximity: -0.9242 - mean_squared_error: 0.7164 - mean_absolute_error: 0.5590
+Epoch 186/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9314 - cosine_proximity: -0.9314 - mean_squared_error: 0.7172 - mean_absolute_error: 0.5570
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9280 - cosine_proximity: -0.9280 - mean_squared_error: 0.7145 - mean_absolute_error: 0.5531
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9263 - cosine_proximity: -0.9263 - mean_squared_error: 0.7252 - mean_absolute_error: 0.5592
+1760/1760 [==============================] - 0s 155us/step - loss: -0.9252 - cosine_proximity: -0.9252 - mean_squared_error: 0.7223 - mean_absolute_error: 0.5582
+Epoch 187/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9228 - cosine_proximity: -0.9228 - mean_squared_error: 0.7431 - mean_absolute_error: 0.5676
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9195 - cosine_proximity: -0.9195 - mean_squared_error: 0.7264 - mean_absolute_error: 0.5603
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9234 - cosine_proximity: -0.9234 - mean_squared_error: 0.7199 - mean_absolute_error: 0.5570
+1760/1760 [==============================] - 0s 146us/step - loss: -0.9234 - cosine_proximity: -0.9234 - mean_squared_error: 0.7169 - mean_absolute_error: 0.5556
+Epoch 188/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9256 - cosine_proximity: -0.9256 - mean_squared_error: 0.7718 - mean_absolute_error: 0.5830
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9246 - cosine_proximity: -0.9246 - mean_squared_error: 0.7497 - mean_absolute_error: 0.5739
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9248 - cosine_proximity: -0.9248 - mean_squared_error: 0.7254 - mean_absolute_error: 0.5599
+1760/1760 [==============================] - 0s 148us/step - loss: -0.9249 - cosine_proximity: -0.9249 - mean_squared_error: 0.7291 - mean_absolute_error: 0.5610
+Epoch 189/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9390 - cosine_proximity: -0.9390 - mean_squared_error: 0.7604 - mean_absolute_error: 0.5754
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9295 - cosine_proximity: -0.9295 - mean_squared_error: 0.7538 - mean_absolute_error: 0.5736
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9254 - cosine_proximity: -0.9254 - mean_squared_error: 0.7515 - mean_absolute_error: 0.5706
+1760/1760 [==============================] - 0s 154us/step - loss: -0.9246 - cosine_proximity: -0.9246 - mean_squared_error: 0.7473 - mean_absolute_error: 0.5680
+Epoch 190/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9313 - cosine_proximity: -0.9313 - mean_squared_error: 0.7855 - mean_absolute_error: 0.5892
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9241 - cosine_proximity: -0.9241 - mean_squared_error: 0.7436 - mean_absolute_error: 0.5695
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9245 - cosine_proximity: -0.9245 - mean_squared_error: 0.7341 - mean_absolute_error: 0.5635
+1760/1760 [==============================] - 0s 127us/step - loss: -0.9250 - cosine_proximity: -0.9250 - mean_squared_error: 0.7455 - mean_absolute_error: 0.5684
+Epoch 191/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9194 - cosine_proximity: -0.9194 - mean_squared_error: 0.7236 - mean_absolute_error: 0.5523
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9242 - cosine_proximity: -0.9242 - mean_squared_error: 0.7231 - mean_absolute_error: 0.5578
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9246 - cosine_proximity: -0.9246 - mean_squared_error: 0.7239 - mean_absolute_error: 0.5569
+1760/1760 [==============================] - 0s 153us/step - loss: -0.9253 - cosine_proximity: -0.9253 - mean_squared_error: 0.7214 - mean_absolute_error: 0.5567
+Epoch 192/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9213 - cosine_proximity: -0.9213 - mean_squared_error: 0.7479 - mean_absolute_error: 0.5653
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9206 - cosine_proximity: -0.9206 - mean_squared_error: 0.7203 - mean_absolute_error: 0.5553
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9219 - cosine_proximity: -0.9219 - mean_squared_error: 0.7221 - mean_absolute_error: 0.5571
+1760/1760 [==============================] - 0s 146us/step - loss: -0.9245 - cosine_proximity: -0.9245 - mean_squared_error: 0.7336 - mean_absolute_error: 0.5628
+Epoch 193/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9290 - cosine_proximity: -0.9290 - mean_squared_error: 0.6948 - mean_absolute_error: 0.5454
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9252 - cosine_proximity: -0.9252 - mean_squared_error: 0.7286 - mean_absolute_error: 0.5601
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9252 - cosine_proximity: -0.9252 - mean_squared_error: 0.7331 - mean_absolute_error: 0.5629
+1760/1760 [==============================] - 0s 146us/step - loss: -0.9242 - cosine_proximity: -0.9242 - mean_squared_error: 0.7310 - mean_absolute_error: 0.5636
+Epoch 194/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9260 - cosine_proximity: -0.9260 - mean_squared_error: 0.7453 - mean_absolute_error: 0.5680
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9262 - cosine_proximity: -0.9262 - mean_squared_error: 0.7564 - mean_absolute_error: 0.5752
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9248 - cosine_proximity: -0.9248 - mean_squared_error: 0.7446 - mean_absolute_error: 0.5697
+1760/1760 [==============================] - 0s 138us/step - loss: -0.9252 - cosine_proximity: -0.9252 - mean_squared_error: 0.7431 - mean_absolute_error: 0.5684
+Epoch 195/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9288 - cosine_proximity: -0.9288 - mean_squared_error: 0.7483 - mean_absolute_error: 0.5742
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9263 - cosine_proximity: -0.9263 - mean_squared_error: 0.7353 - mean_absolute_error: 0.5691
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9257 - cosine_proximity: -0.9257 - mean_squared_error: 0.7360 - mean_absolute_error: 0.5670
+1760/1760 [==============================] - 0s 151us/step - loss: -0.9257 - cosine_proximity: -0.9257 - mean_squared_error: 0.7352 - mean_absolute_error: 0.5658
+Epoch 196/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9188 - cosine_proximity: -0.9188 - mean_squared_error: 0.7258 - mean_absolute_error: 0.5599
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9232 - cosine_proximity: -0.9232 - mean_squared_error: 0.7351 - mean_absolute_error: 0.5619
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9262 - cosine_proximity: -0.9262 - mean_squared_error: 0.7420 - mean_absolute_error: 0.5660
+1760/1760 [==============================] - 0s 142us/step - loss: -0.9256 - cosine_proximity: -0.9256 - mean_squared_error: 0.7357 - mean_absolute_error: 0.5634
+Epoch 197/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9242 - cosine_proximity: -0.9242 - mean_squared_error: 0.7268 - mean_absolute_error: 0.5582
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9238 - cosine_proximity: -0.9238 - mean_squared_error: 0.7101 - mean_absolute_error: 0.5511
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9242 - cosine_proximity: -0.9242 - mean_squared_error: 0.7164 - mean_absolute_error: 0.5559
+1760/1760 [==============================] - 0s 144us/step - loss: -0.9246 - cosine_proximity: -0.9246 - mean_squared_error: 0.7268 - mean_absolute_error: 0.5608
+Epoch 198/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9328 - cosine_proximity: -0.9328 - mean_squared_error: 0.7487 - mean_absolute_error: 0.5732
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9299 - cosine_proximity: -0.9299 - mean_squared_error: 0.7247 - mean_absolute_error: 0.5573
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9233 - cosine_proximity: -0.9233 - mean_squared_error: 0.7136 - mean_absolute_error: 0.5527
+1760/1760 [==============================] - 0s 142us/step - loss: -0.9257 - cosine_proximity: -0.9257 - mean_squared_error: 0.7190 - mean_absolute_error: 0.5548
+Epoch 199/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9270 - cosine_proximity: -0.9270 - mean_squared_error: 0.6675 - mean_absolute_error: 0.5335
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9266 - cosine_proximity: -0.9266 - mean_squared_error: 0.7219 - mean_absolute_error: 0.5559
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9279 - cosine_proximity: -0.9279 - mean_squared_error: 0.7406 - mean_absolute_error: 0.5645
+1760/1760 [==============================] - 0s 144us/step - loss: -0.9260 - cosine_proximity: -0.9260 - mean_squared_error: 0.7325 - mean_absolute_error: 0.5606
+Epoch 200/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9321 - cosine_proximity: -0.9321 - mean_squared_error: 0.7599 - mean_absolute_error: 0.5744
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9286 - cosine_proximity: -0.9286 - mean_squared_error: 0.7334 - mean_absolute_error: 0.5605
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9274 - cosine_proximity: -0.9274 - mean_squared_error: 0.7309 - mean_absolute_error: 0.5602
+1760/1760 [==============================] - 0s 149us/step - loss: -0.9269 - cosine_proximity: -0.9269 - mean_squared_error: 0.7277 - mean_absolute_error: 0.5590
+Epoch 201/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9286 - cosine_proximity: -0.9286 - mean_squared_error: 0.7354 - mean_absolute_error: 0.5647
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9290 - cosine_proximity: -0.9290 - mean_squared_error: 0.7401 - mean_absolute_error: 0.5656
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9238 - cosine_proximity: -0.9238 - mean_squared_error: 0.7142 - mean_absolute_error: 0.5521
+1760/1760 [==============================] - 0s 151us/step - loss: -0.9258 - cosine_proximity: -0.9258 - mean_squared_error: 0.7235 - mean_absolute_error: 0.5574
+Epoch 202/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9236 - cosine_proximity: -0.9236 - mean_squared_error: 0.7191 - mean_absolute_error: 0.5556
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9257 - cosine_proximity: -0.9257 - mean_squared_error: 0.7260 - mean_absolute_error: 0.5607
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9253 - cosine_proximity: -0.9253 - mean_squared_error: 0.7143 - mean_absolute_error: 0.5549
+1760/1760 [==============================] - 0s 144us/step - loss: -0.9258 - cosine_proximity: -0.9258 - mean_squared_error: 0.7189 - mean_absolute_error: 0.5569
+Epoch 203/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9142 - cosine_proximity: -0.9142 - mean_squared_error: 0.7593 - mean_absolute_error: 0.5771
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9230 - cosine_proximity: -0.9230 - mean_squared_error: 0.7417 - mean_absolute_error: 0.5663
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9285 - cosine_proximity: -0.9285 - mean_squared_error: 0.7250 - mean_absolute_error: 0.5565
+1760/1760 [==============================] - 0s 147us/step - loss: -0.9273 - cosine_proximity: -0.9273 - mean_squared_error: 0.7374 - mean_absolute_error: 0.5616
+Epoch 204/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9301 - cosine_proximity: -0.9301 - mean_squared_error: 0.7899 - mean_absolute_error: 0.5847
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9272 - cosine_proximity: -0.9272 - mean_squared_error: 0.7417 - mean_absolute_error: 0.5664
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9282 - cosine_proximity: -0.9282 - mean_squared_error: 0.7328 - mean_absolute_error: 0.5609
+1760/1760 [==============================] - 0s 148us/step - loss: -0.9267 - cosine_proximity: -0.9267 - mean_squared_error: 0.7364 - mean_absolute_error: 0.5624
+Epoch 205/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9296 - cosine_proximity: -0.9296 - mean_squared_error: 0.7552 - mean_absolute_error: 0.5705
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9301 - cosine_proximity: -0.9301 - mean_squared_error: 0.7681 - mean_absolute_error: 0.5734
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9275 - cosine_proximity: -0.9275 - mean_squared_error: 0.7657 - mean_absolute_error: 0.5728
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9270 - cosine_proximity: -0.9270 - mean_squared_error: 0.7558 - mean_absolute_error: 0.5686
+Epoch 206/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9245 - cosine_proximity: -0.9245 - mean_squared_error: 0.7864 - mean_absolute_error: 0.5817
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9219 - cosine_proximity: -0.9219 - mean_squared_error: 0.7547 - mean_absolute_error: 0.5707
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9268 - cosine_proximity: -0.9268 - mean_squared_error: 0.7559 - mean_absolute_error: 0.5703
+1760/1760 [==============================] - 0s 149us/step - loss: -0.9261 - cosine_proximity: -0.9261 - mean_squared_error: 0.7500 - mean_absolute_error: 0.5677
+Epoch 207/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9203 - cosine_proximity: -0.9203 - mean_squared_error: 0.7193 - mean_absolute_error: 0.5521
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9272 - cosine_proximity: -0.9272 - mean_squared_error: 0.7440 - mean_absolute_error: 0.5655
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9301 - cosine_proximity: -0.9301 - mean_squared_error: 0.7617 - mean_absolute_error: 0.5735
+1760/1760 [==============================] - 0s 148us/step - loss: -0.9277 - cosine_proximity: -0.9277 - mean_squared_error: 0.7515 - mean_absolute_error: 0.5675
+Epoch 208/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9365 - cosine_proximity: -0.9365 - mean_squared_error: 0.7858 - mean_absolute_error: 0.5861
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9311 - cosine_proximity: -0.9311 - mean_squared_error: 0.7703 - mean_absolute_error: 0.5783
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9291 - cosine_proximity: -0.9291 - mean_squared_error: 0.7546 - mean_absolute_error: 0.5703
+1760/1760 [==============================] - 0s 153us/step - loss: -0.9265 - cosine_proximity: -0.9265 - mean_squared_error: 0.7497 - mean_absolute_error: 0.5671
+Epoch 209/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9248 - cosine_proximity: -0.9248 - mean_squared_error: 0.7608 - mean_absolute_error: 0.5735
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9267 - cosine_proximity: -0.9267 - mean_squared_error: 0.7626 - mean_absolute_error: 0.5708
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9265 - cosine_proximity: -0.9265 - mean_squared_error: 0.7675 - mean_absolute_error: 0.5728
+1760/1760 [==============================] - 0s 142us/step - loss: -0.9265 - cosine_proximity: -0.9265 - mean_squared_error: 0.7606 - mean_absolute_error: 0.5696
+Epoch 210/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9311 - cosine_proximity: -0.9311 - mean_squared_error: 0.7598 - mean_absolute_error: 0.5705
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9247 - cosine_proximity: -0.9247 - mean_squared_error: 0.7518 - mean_absolute_error: 0.5686
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9276 - cosine_proximity: -0.9276 - mean_squared_error: 0.7529 - mean_absolute_error: 0.5674
+1760/1760 [==============================] - 0s 139us/step - loss: -0.9278 - cosine_proximity: -0.9278 - mean_squared_error: 0.7596 - mean_absolute_error: 0.5716
+Epoch 211/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9258 - cosine_proximity: -0.9258 - mean_squared_error: 0.7858 - mean_absolute_error: 0.5792
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9244 - cosine_proximity: -0.9244 - mean_squared_error: 0.7551 - mean_absolute_error: 0.5655
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9272 - cosine_proximity: -0.9272 - mean_squared_error: 0.7495 - mean_absolute_error: 0.5629
+1760/1760 [==============================] - 0s 147us/step - loss: -0.9268 - cosine_proximity: -0.9268 - mean_squared_error: 0.7516 - mean_absolute_error: 0.5654
+Epoch 212/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9229 - cosine_proximity: -0.9229 - mean_squared_error: 0.7755 - mean_absolute_error: 0.5830
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9224 - cosine_proximity: -0.9224 - mean_squared_error: 0.7160 - mean_absolute_error: 0.5526
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9283 - cosine_proximity: -0.9283 - mean_squared_error: 0.7390 - mean_absolute_error: 0.5640
+1760/1760 [==============================] - 0s 143us/step - loss: -0.9271 - cosine_proximity: -0.9271 - mean_squared_error: 0.7355 - mean_absolute_error: 0.5606
+Epoch 213/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9241 - cosine_proximity: -0.9241 - mean_squared_error: 0.7397 - mean_absolute_error: 0.5613
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9266 - cosine_proximity: -0.9266 - mean_squared_error: 0.7378 - mean_absolute_error: 0.5614
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9246 - cosine_proximity: -0.9246 - mean_squared_error: 0.7425 - mean_absolute_error: 0.5616
+1760/1760 [==============================] - 0s 137us/step - loss: -0.9269 - cosine_proximity: -0.9269 - mean_squared_error: 0.7441 - mean_absolute_error: 0.5629
+Epoch 214/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9167 - cosine_proximity: -0.9167 - mean_squared_error: 0.7064 - mean_absolute_error: 0.5418
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9217 - cosine_proximity: -0.9217 - mean_squared_error: 0.7409 - mean_absolute_error: 0.5592
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9273 - cosine_proximity: -0.9273 - mean_squared_error: 0.7564 - mean_absolute_error: 0.5664
+1760/1760 [==============================] - 0s 138us/step - loss: -0.9273 - cosine_proximity: -0.9273 - mean_squared_error: 0.7580 - mean_absolute_error: 0.5674
+Epoch 215/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9334 - cosine_proximity: -0.9334 - mean_squared_error: 0.7587 - mean_absolute_error: 0.5619
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9279 - cosine_proximity: -0.9279 - mean_squared_error: 0.7680 - mean_absolute_error: 0.5699
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9285 - cosine_proximity: -0.9285 - mean_squared_error: 0.7656 - mean_absolute_error: 0.5702
+1760/1760 [==============================] - 0s 146us/step - loss: -0.9284 - cosine_proximity: -0.9284 - mean_squared_error: 0.7615 - mean_absolute_error: 0.5688
+Epoch 216/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9322 - cosine_proximity: -0.9322 - mean_squared_error: 0.8037 - mean_absolute_error: 0.5842
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9274 - cosine_proximity: -0.9274 - mean_squared_error: 0.7935 - mean_absolute_error: 0.5798
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9289 - cosine_proximity: -0.9289 - mean_squared_error: 0.7797 - mean_absolute_error: 0.5757
+1760/1760 [==============================] - 0s 139us/step - loss: -0.9264 - cosine_proximity: -0.9264 - mean_squared_error: 0.7790 - mean_absolute_error: 0.5759
+Epoch 217/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9263 - cosine_proximity: -0.9263 - mean_squared_error: 0.7434 - mean_absolute_error: 0.5655
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9265 - cosine_proximity: -0.9265 - mean_squared_error: 0.7856 - mean_absolute_error: 0.5806
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9286 - cosine_proximity: -0.9286 - mean_squared_error: 0.7702 - mean_absolute_error: 0.5738
+1760/1760 [==============================] - 0s 143us/step - loss: -0.9279 - cosine_proximity: -0.9279 - mean_squared_error: 0.7776 - mean_absolute_error: 0.5765
+Epoch 218/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9202 - cosine_proximity: -0.9202 - mean_squared_error: 0.7959 - mean_absolute_error: 0.5823
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9309 - cosine_proximity: -0.9309 - mean_squared_error: 0.8093 - mean_absolute_error: 0.5895
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9272 - cosine_proximity: -0.9272 - mean_squared_error: 0.7773 - mean_absolute_error: 0.5745
+1760/1760 [==============================] - 0s 151us/step - loss: -0.9283 - cosine_proximity: -0.9283 - mean_squared_error: 0.7755 - mean_absolute_error: 0.5748
+Epoch 219/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9308 - cosine_proximity: -0.9308 - mean_squared_error: 0.7648 - mean_absolute_error: 0.5765
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9301 - cosine_proximity: -0.9301 - mean_squared_error: 0.7801 - mean_absolute_error: 0.5810
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9294 - cosine_proximity: -0.9294 - mean_squared_error: 0.7730 - mean_absolute_error: 0.5778
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9268 - cosine_proximity: -0.9268 - mean_squared_error: 0.7624 - mean_absolute_error: 0.5711
+Epoch 220/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9250 - cosine_proximity: -0.9250 - mean_squared_error: 0.8020 - mean_absolute_error: 0.5888
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9266 - cosine_proximity: -0.9266 - mean_squared_error: 0.7720 - mean_absolute_error: 0.5742
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9299 - cosine_proximity: -0.9299 - mean_squared_error: 0.7875 - mean_absolute_error: 0.5810
+1760/1760 [==============================] - 0s 147us/step - loss: -0.9286 - cosine_proximity: -0.9286 - mean_squared_error: 0.7765 - mean_absolute_error: 0.5747
+Epoch 221/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9267 - cosine_proximity: -0.9267 - mean_squared_error: 0.8040 - mean_absolute_error: 0.5871
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9262 - cosine_proximity: -0.9262 - mean_squared_error: 0.7777 - mean_absolute_error: 0.5765
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9299 - cosine_proximity: -0.9299 - mean_squared_error: 0.7796 - mean_absolute_error: 0.5768
+1760/1760 [==============================] - 0s 156us/step - loss: -0.9290 - cosine_proximity: -0.9290 - mean_squared_error: 0.7605 - mean_absolute_error: 0.5661
+Epoch 222/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9249 - cosine_proximity: -0.9249 - mean_squared_error: 0.6973 - mean_absolute_error: 0.5303
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9334 - cosine_proximity: -0.9334 - mean_squared_error: 0.7997 - mean_absolute_error: 0.5820
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9294 - cosine_proximity: -0.9294 - mean_squared_error: 0.7707 - mean_absolute_error: 0.5723
+1760/1760 [==============================] - 0s 143us/step - loss: -0.9282 - cosine_proximity: -0.9282 - mean_squared_error: 0.7671 - mean_absolute_error: 0.5702
+Epoch 223/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9221 - cosine_proximity: -0.9221 - mean_squared_error: 0.7503 - mean_absolute_error: 0.5599
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9262 - cosine_proximity: -0.9262 - mean_squared_error: 0.7608 - mean_absolute_error: 0.5676
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9290 - cosine_proximity: -0.9290 - mean_squared_error: 0.7666 - mean_absolute_error: 0.5707
+1760/1760 [==============================] - 0s 136us/step - loss: -0.9286 - cosine_proximity: -0.9286 - mean_squared_error: 0.7627 - mean_absolute_error: 0.5680
+Epoch 224/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9177 - cosine_proximity: -0.9177 - mean_squared_error: 0.7592 - mean_absolute_error: 0.5691
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9255 - cosine_proximity: -0.9255 - mean_squared_error: 0.7685 - mean_absolute_error: 0.5686
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9295 - cosine_proximity: -0.9295 - mean_squared_error: 0.7735 - mean_absolute_error: 0.5711
+1760/1760 [==============================] - 0s 140us/step - loss: -0.9288 - cosine_proximity: -0.9288 - mean_squared_error: 0.7717 - mean_absolute_error: 0.5708
+Epoch 225/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9169 - cosine_proximity: -0.9169 - mean_squared_error: 0.7619 - mean_absolute_error: 0.5648
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9257 - cosine_proximity: -0.9257 - mean_squared_error: 0.7869 - mean_absolute_error: 0.5757
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9285 - cosine_proximity: -0.9285 - mean_squared_error: 0.7737 - mean_absolute_error: 0.5712
+1760/1760 [==============================] - 0s 154us/step - loss: -0.9281 - cosine_proximity: -0.9281 - mean_squared_error: 0.7687 - mean_absolute_error: 0.5688
+Epoch 226/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9359 - cosine_proximity: -0.9359 - mean_squared_error: 0.7829 - mean_absolute_error: 0.5812
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9335 - cosine_proximity: -0.9335 - mean_squared_error: 0.7673 - mean_absolute_error: 0.5694
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9312 - cosine_proximity: -0.9312 - mean_squared_error: 0.7837 - mean_absolute_error: 0.5757
+1760/1760 [==============================] - 0s 139us/step - loss: -0.9289 - cosine_proximity: -0.9289 - mean_squared_error: 0.7812 - mean_absolute_error: 0.5736
+Epoch 227/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9328 - cosine_proximity: -0.9328 - mean_squared_error: 0.7415 - mean_absolute_error: 0.5588
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9281 - cosine_proximity: -0.9281 - mean_squared_error: 0.7572 - mean_absolute_error: 0.5643
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9263 - cosine_proximity: -0.9263 - mean_squared_error: 0.7538 - mean_absolute_error: 0.5637
+1760/1760 [==============================] - 0s 151us/step - loss: -0.9284 - cosine_proximity: -0.9284 - mean_squared_error: 0.7799 - mean_absolute_error: 0.5747
+Epoch 228/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9339 - cosine_proximity: -0.9339 - mean_squared_error: 0.7902 - mean_absolute_error: 0.5790
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9267 - cosine_proximity: -0.9267 - mean_squared_error: 0.7696 - mean_absolute_error: 0.5708
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9254 - cosine_proximity: -0.9254 - mean_squared_error: 0.7713 - mean_absolute_error: 0.5707
+1760/1760 [==============================] - 0s 146us/step - loss: -0.9279 - cosine_proximity: -0.9279 - mean_squared_error: 0.7773 - mean_absolute_error: 0.5744
+Epoch 229/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9299 - cosine_proximity: -0.9299 - mean_squared_error: 0.7880 - mean_absolute_error: 0.5790
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9265 - cosine_proximity: -0.9265 - mean_squared_error: 0.7468 - mean_absolute_error: 0.5609
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9290 - cosine_proximity: -0.9290 - mean_squared_error: 0.7707 - mean_absolute_error: 0.5698
+1760/1760 [==============================] - 0s 147us/step - loss: -0.9288 - cosine_proximity: -0.9288 - mean_squared_error: 0.7777 - mean_absolute_error: 0.5738
+Epoch 230/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9285 - cosine_proximity: -0.9285 - mean_squared_error: 0.7179 - mean_absolute_error: 0.5466
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9255 - cosine_proximity: -0.9255 - mean_squared_error: 0.7720 - mean_absolute_error: 0.5702
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9288 - cosine_proximity: -0.9288 - mean_squared_error: 0.7769 - mean_absolute_error: 0.5713
+1760/1760 [==============================] - 0s 158us/step - loss: -0.9298 - cosine_proximity: -0.9298 - mean_squared_error: 0.7881 - mean_absolute_error: 0.5765
+Epoch 231/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9277 - cosine_proximity: -0.9277 - mean_squared_error: 0.7597 - mean_absolute_error: 0.5670
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9269 - cosine_proximity: -0.9269 - mean_squared_error: 0.7543 - mean_absolute_error: 0.5659
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9270 - cosine_proximity: -0.9270 - mean_squared_error: 0.7581 - mean_absolute_error: 0.5650
+1760/1760 [==============================] - 0s 153us/step - loss: -0.9284 - cosine_proximity: -0.9284 - mean_squared_error: 0.7575 - mean_absolute_error: 0.5656
+Epoch 232/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9308 - cosine_proximity: -0.9308 - mean_squared_error: 0.7557 - mean_absolute_error: 0.5655
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9280 - cosine_proximity: -0.9280 - mean_squared_error: 0.7584 - mean_absolute_error: 0.5662
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9294 - cosine_proximity: -0.9294 - mean_squared_error: 0.7645 - mean_absolute_error: 0.5679
+1760/1760 [==============================] - 0s 138us/step - loss: -0.9296 - cosine_proximity: -0.9296 - mean_squared_error: 0.7641 - mean_absolute_error: 0.5693
+Epoch 233/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9289 - cosine_proximity: -0.9289 - mean_squared_error: 0.7528 - mean_absolute_error: 0.5597
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9331 - cosine_proximity: -0.9331 - mean_squared_error: 0.7892 - mean_absolute_error: 0.5783
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9295 - cosine_proximity: -0.9295 - mean_squared_error: 0.7736 - mean_absolute_error: 0.5716
+1760/1760 [==============================] - 0s 156us/step - loss: -0.9299 - cosine_proximity: -0.9299 - mean_squared_error: 0.7768 - mean_absolute_error: 0.5725
+Epoch 234/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9158 - cosine_proximity: -0.9158 - mean_squared_error: 0.7262 - mean_absolute_error: 0.5469
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9263 - cosine_proximity: -0.9263 - mean_squared_error: 0.7515 - mean_absolute_error: 0.5598
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9297 - cosine_proximity: -0.9297 - mean_squared_error: 0.7674 - mean_absolute_error: 0.5691
+1760/1760 [==============================] - 0s 145us/step - loss: -0.9294 - cosine_proximity: -0.9294 - mean_squared_error: 0.7686 - mean_absolute_error: 0.5684
+Epoch 235/235
+
+ 512/1760 [=======>......................] - ETA: 0s - loss: -0.9245 - cosine_proximity: -0.9245 - mean_squared_error: 0.7819 - mean_absolute_error: 0.5713
+1024/1760 [================>.............] - ETA: 0s - loss: -0.9286 - cosine_proximity: -0.9286 - mean_squared_error: 0.7622 - mean_absolute_error: 0.5654
+1536/1760 [=========================>....] - ETA: 0s - loss: -0.9290 - cosine_proximity: -0.9290 - mean_squared_error: 0.7761 - mean_absolute_error: 0.5723
+1760/1760 [==============================] - 0s 153us/step - loss: -0.9291 - cosine_proximity: -0.9291 - mean_squared_error: 0.7795 - mean_absolute_error: 0.5734
+Plots saved in plots/
+Training finished
+
+ 512/2732 [====>.........................] - ETA: 0s
+2048/2732 [=====================>........] - ETA: 0s
+2732/2732 [==============================] - 0s 106us/step
+/home/gazkune/.virtualenvs/generic-ar/local/lib/python2.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/home/gazkune/.virtualenvs/generic-ar/local/lib/python2.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+Transforming regression predictions to classes
+Predicted unique activities:
+[ 0  3  4 11 13 15 17 20 24 26 28 29 30]
+ytrue shape:  (2732,)
+ypreds shape:  (2732, 5)
+Classes for the heatmap (31)
+[u'get_dressed', u'prepare_brunch', u'answering_phone', u'go_to_bed', u'get_drink', u'search_keys', u'eat_brunch', u'prepare_for_leaving', u'setting_up_sensors', u'on_phone', u'shaving', u'leave_house', u'wash_dishes', u'prepare_dinner', u'install_sensor', u'use_toilet', u'eat_dinner', u'take_shower', u'faster_kitchen_camera', u'play_piano', u'brush_teeth', u'drop_dish', u'unpacking', u'shave', u'put_clothes_in_washing_machine', u'relax', u'get_snack', u'eating', u'take_medication', u'prepare_lunch', u'prepare_breakfast']
+Utils: ypred unique values: [ 0  3  4 11 13 15 17 24 30]
+Confusion matrix, without normalization
+Utils: ypred unique values: [ 0  3  4 11 13 15 17 24 30]
+Normalized confusion matrix
+Metrics saved in results/04-kasterenB-kasterenC-cross_lstm-reg-with_time-no_nones-kasterenB-kasterenC-complete-metrics.json
