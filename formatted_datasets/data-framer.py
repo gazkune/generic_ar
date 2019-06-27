@@ -23,9 +23,9 @@ import random
 
 # Directory of original datasets 
 DIR = '../datasets/'
-DATASET = 'kasterenC'
+DATASET = 'kasterenA'
 # Choose the specific dataset
-CSV = DIR + DATASET + '/kasterenC_groundtruth.csv'
+CSV = DIR + DATASET + '/' + DATASET + '_groundtruth.csv'
 
 # Number of dimensions of an action vector
 WORD_DIM = 300 # Make coherent with selected WORD2VEC_MODEL
@@ -404,10 +404,12 @@ def main(argv):
 
     # Save those two dicts in a file
     with open(DATASET+"/action_to_int_"+NONES+".json", 'w') as fp:
-        json.dump(activity_to_int, fp, indent=4)
+        json.dump(action_to_int, fp, indent=4)
         
     with open(DATASET+"/int_to_action_"+NONES+".json", 'w') as fp:
-        json.dump(int_to_activity, fp, indent=4)    
+        json.dump(int_to_action, fp, indent=4)
+    
+    sys.exit()
     
     print("max sequence length: ", max_sequence_length)
     print("X shape: ", X.shape)
