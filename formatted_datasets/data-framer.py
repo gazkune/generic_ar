@@ -23,9 +23,9 @@ import random
 
 # Directory of original datasets 
 DIR = '../datasets/'
-DATASET = 'kasterenB'
+DATASET = 'kasterenC'
 # Choose the specific dataset
-CSV = DIR + DATASET + '/kasterenB_groundtruth.csv'
+CSV = DIR + DATASET + '/kasterenC_groundtruth.csv'
 
 # Number of dimensions of an action vector
 WORD_DIM = 300 # Make coherent with selected WORD2VEC_MODEL
@@ -303,7 +303,7 @@ def test_data_framing(num_samples, X, y, tokenizer, int_to_activity):
     print("########################")
     print("Testing X and y: ")
     num_samples = 10
-    for i in xrange(num_samples):
+    for i in range(num_samples):
         print("Test ", i)
         sample = random.randint(0, X.shape[0]-1)
         print("Sample number: ", sample)
@@ -398,6 +398,16 @@ def main(argv):
     
     print("tokenizer:")
     print(tokenizer.word_index)
+    action_to_int = tokenizer.word_index
+    int_to_action = {v: k for k, v in action_to_int.iteritems()}
+    print(int_to_action)
+
+    # Save those two dicts in a file
+    with open(DATASET+"/action_to_int_"+NONES+".json", 'w') as fp:
+        json.dump(activity_to_int, fp, indent=4)
+        
+    with open(DATASET+"/int_to_action_"+NONES+".json", 'w') as fp:
+        json.dump(int_to_activity, fp, indent=4)    
     
     print("max sequence length: ", max_sequence_length)
     print("X shape: ", X.shape)
@@ -414,7 +424,7 @@ def main(argv):
     
     
     # test some samples from X and y to see whether they make sense or not
-    test_data_framing(10, X, y_orig, tokenizer, int_to_activity)        
+    test_data_framing(10, X, y_orig, tokenizer, int_to_activity)
     
     # Save X, y and embedding_matrix using numpy serialization
     np.save(OUTPUT_DIR + '/' + OUTPUT_ROOT_NAME + '_x.npy', X)
