@@ -66,6 +66,17 @@ class CrossDatasetFormatter:
             with open(filename) as f:
                 self.activity_to_emb_dicts.append(json.load(f))
 
+        # Load action_to_int and int_to_action files
+        self.action_to_int_dicts = []
+        self.int_to_action_dicts = []
+        for dataset in datasets:
+            filename_ai = base_input_dir + dataset + '/action_to_int_' + nones + '.json'
+            filename_ia = base_input_dir + dataset + '/int_to_action_' + nones + '.json'            
+            with open(filename_ai) as f:
+                self.action_to_int_dicts.append(json.load(f))
+            with open(filename_ia) as f:
+                self.int_to_action_dicts.append(json.load(f))
+
     def reformat_datasets(self):
         """ Function to reformat datasets, which means:
         1) build_common_activity_to_int_dict
@@ -76,6 +87,7 @@ class CrossDatasetFormatter:
         """
         print("Reformatting datasets for cross dataset usage")
         self.build_common_activity_to_int_dict()
+        self.build_common_action_to_int_dict()
         self.build_common_embedding_matrix()
         self.update_x_sequences()
         self.update_y_onehot()
@@ -99,10 +111,11 @@ class CrossDatasetFormatter:
                     index += 1    
         
         # Now build the int_to_activity dict
-        self.common_int_to_activity = {}
-        for key in self.common_activity_to_int:
-            newkey = self.common_activity_to_int[key]
-            self.common_int_to_activity[newkey] = key
+        self.common_int_to_activity = {v: k for k, v in self.common_activity_to_int.iteritems()}
+        # self.common_int_to_activity = {}
+        # for key in self.common_activity_to_int:
+        #     newkey = self.common_activity_to_int[key]
+        #     self.common_int_to_activity[newkey] = key
 
     def save_common_activity_int_dicts(self, folder):
         """Function to save the generated dictionaries in json format
@@ -116,6 +129,37 @@ class CrossDatasetFormatter:
         
         with open(folder + datasets + "_int_to_activity_" + self.nones + ".json", 'w') as fp:
             json.dump(self.common_int_to_activity, fp, indent=4)                 
+
+    def build_common_action_to_int_dict(self):
+        """Function to fuse individual action_to_int dicts
+        """
+        self.common_action_to_int = {}
+        index = 0
+        counter = 0
+        for i in range(len(self.action_to_int_dicts)):
+            for key in self.action_to_int_dicts[i].keys():
+                #print("Activity: " + key)
+                counter += 1
+                if not key in self.common_action_to_int:
+                    self.common_action_to_int[key] = index
+                    index += 1    
+        
+        # Now build the int_to_activity dict
+        self.common_int_to_action = {v: k for k, v in self.common_action_to_int.iteritems()}
+        
+    def save_common_action_int_dicts(self, folder):
+        """Function to save the generated dictionaries in json format
+        """
+        datasets = ""
+        for dataset in self.datasets:
+            datasets = datasets + "_" + dataset
+
+        with open(folder + datasets + "_action_to_int_"+ self.nones +".json", 'w') as fp:
+            json.dump(self.common_action_to_int, fp, indent=4)
+        
+        with open(folder + datasets + "_int_to_action_" + self.nones + ".json", 'w') as fp:
+            json.dump(self.common_int_to_action, fp, indent=4)
+    
 
     def build_common_embedding_matrix(self):
         """Function to fuse all embbeding matrices
@@ -276,7 +320,21 @@ def main(argv):
     OP = 'sum'
 
     cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP)
+    keyslist = []
+    for d in cross_dataset_formatter.action_to_int_dicts:
+        keyslist.append(d.keys())
+        print("-------------------------")
+        print(d)
+    common_actions = set(keyslist[0]).intersection(*keyslist)
+    print("common actions:")
+    print(common_actions)
+    
     X_seq_up, y_onehot_up, common_embedding_matrix, common_activity_to_int, common_int_to_activity, common_activity_to_emb = cross_dataset_formatter.reformat_datasets()
+    print("common action to int:")
+    print(cross_dataset_formatter.common_action_to_int)
+    print("common int to action:")
+    print(cross_dataset_formatter.common_int_to_action)
+        
     print("View reformatted datasets' information")
     print("Common activity_to_int:")
     print(common_activity_to_int)

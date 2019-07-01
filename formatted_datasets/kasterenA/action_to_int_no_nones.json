@@ -1,0 +1,20 @@
+{
+    "plates_cupboard": 7, 
+    "front_door": 6, 
+    "cups_cupboard": 9, 
+    "groceries_cupboard": 8, 
+    "hall_toilet_door": 2, 
+    "toilet_flush": 3, 
+    "fridge": 4, 
+    "freezer": 11, 
+    "morning": 18, 
+    "afternoon": 17, 
+    "evening": 16, 
+    "microwave": 12, 
+    "hall_bedroom_door": 5, 
+    "night": 15, 
+    "dishwasher": 13, 
+    "washing_machine": 14, 
+    "pans_cupboard": 10, 
+    "hall_bathroom_door": 1
+}
