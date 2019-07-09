@@ -200,7 +200,7 @@ def main(argv):
     
         model.add(Embedding(input_dim=embedding_matrix.shape[0], output_dim=embedding_matrix.shape[1], weights=[embedding_matrix], input_length=max_sequence_length, trainable=False))
         # Change input shape when using embeddings
-        model.add(LSTM(512, return_sequences=False, recurrent_dropout=DROPOUT, dropout=DROPOUT, input_shape=(max_sequence_length, embedding_matrix.shape[1])))    
+        model.add(LSTM(512, return_sequences=False, recurrent_dropout=DROPOUT, dropout=DROPOUT, input_shape=(max_sequence_length, embedding_matrix.shape[1])))        
         # For regression use a linear dense layer with embedding_matrix.shape[1] size (300 in this case)
         # TODO: consider the need of normalization before calculating the loss (we may use a Lambda layer with L2 norm)
         model.add(Dense(embedding_matrix.shape[1]))

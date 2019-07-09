@@ -15,6 +15,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+from keras.utils import np_utils
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
 from keras.models import model_from_json
@@ -35,7 +36,7 @@ from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-TRAIN_DATASET = 'kasterenA' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
+TRAIN_DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
 TEST_DATASET = 'kasterenB' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
 DATASETS = [TRAIN_DATASET, TEST_DATASET]
 # Directories of formatted datasets
@@ -49,13 +50,13 @@ OP = 'sum'
 # Select imbalance data treatment
 TREAT_IMBALANCE = False
 # Select the number of epochs for training
-EPOCHS = 130
+EPOCHS = 169
 # Select batch size
 BATCH_SIZE = 256
 # Select dropout value
-DROPOUT = 0.1
+DROPOUT = 0.7
 # Select loss function
-LOSS = 'cosine_proximity' # 'cosine_proximity' # 'mean_squared_error'
+LOSS = 'categorical_crossentropy'
 # Select the number of predictions to calculate
 N_PREDS = 5
 # END CONFIGURATION VARIABLES
@@ -63,7 +64,6 @@ N_PREDS = 5
 
 # ID for the experiment which is being run -> used to store the files with
 # appropriate naming
-# TODO: Change this to better address different experiments and models
 RESULTS = 'results/'
 PLOTS = 'plots/'
 WEIGHTS = 'weights/'
@@ -75,112 +75,194 @@ WEIGHTS_FILE_ROOT = '-weights.hdf5'
 
 def main(argv):   
     """" Main function
-    """
-    print("main")
+    This is the flow of actions of this main
+    0: Initial steps
+    1: Load data and reformat for cross dataset experiments (class CrossDatasetFormatter)    
+    2: Build the LSTM model (embedding layer frozen)
+    3: Test managing imbalanced data in the training set (SMOTE?)
+    4: Train the model with the (imbalance-corrected) training set and use the test set to validate (TODO: consult this better)
+    5: Store the generated learning curves and metrics with the best model (ModelCheckpoint? If results get worse with epochs, use EarlyStopping. Validation data?)
+    6: Calculate the metrics obtained and store
+    """        
 
-def obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_activity_dict, k=1):
-    """Obtains the class predicted from the embeddings using the closest embedding from activity_dict
-            
-    Usage example:    
-        
-    Parameters
-    ----------
-        yp : array, shape = [n_samples, EMBEDDING DIMENSION]
-            Word embeddings predicted by the regressor for given test inputs.
-        
-        activity_dict: dictionary, {class name, word embedding}
-            The word embeddings for the activity classes.
-        
-        activity_to_int_dict: dictionary, {class name, index}
-            The activity index for every activity name in the dataset. 
-        
-        int_to_activity_dict: dictionary, {index, class name}
-            The activity name for every activity index in the dataset. 
-        k: int
-            How many predictions per sample
-           
-    Returns
-    -------
-        ypreds : array, shape = [n_samples, k]
-            Array with the k activity indices obtained from the predictions of the regressor stored in yp    
-    """    
+    # 0: Initial steps
+    print_configuration_info()        
+    # fix random seed for reproducibility
+    np.random.seed(7)
+    # Make an instance of the class Utils
+    utils = Utils()
 
-    print('Transforming regression predictions to classes')
-
-    # Simple approach: use fors and check one by one
+    # Obtain the file number
+    maxnumber = utils.find_file_maxnumber(RESULTS)
+    filenumber = maxnumber + 1
+    print('file number: ', filenumber)
     
-    def closest_activity(pred, activity_dict):
-        min_dist = 100.0
-        activity = ""
-        for key in activity_dict:
-            dist = distance.cosine(pred, activity_dict[key])
-            if dist < min_dist: 
-                min_dist = dist
-                activity = key
-        return activity, min_dist
+    # 1: Load data (X and y_emb)
+    print('Loading and formatting data')
+    cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP)
+    # Use only the needed methods
+    cross_dataset_formatter.build_common_activity_to_int_dict()
+    cross_dataset_formatter.build_common_action_to_int_dict()
+    cross_dataset_formatter.update_x_sequences_no_rep()
+    cross_dataset_formatter.update_y_onehot()    
     
-    def closest_k_activities(pred, activity_dict, k):
-        activities = ["!!!"]*k # Build an array of empty activity names (strings)
-        min_dists = [1000000.0]*k # Build an array of distances
-        for key in activity_dict: # TODO: Ignore 'None' activities that are in activity_dict (if 'no_nones')
-            dist = distance.cosine(pred, activity_dict[key])
-            i = 0
-            inserted = False
-            while i < k and not inserted:
-                if dist < min_dists[i]:
-                    activities.insert(i, key) # The other activities are displaced
-                    min_dists.insert(i, dist)
-                    # Remove the last element of the lists
-                    activities.pop(-1)
-                    min_dists.pop(-1)
-                    #activities[i] = key
-                    #min_dists[i] = dist
-                    inserted = True                    
+    cross_dataset_formatter.save_common_activity_int_dicts("cross_activity_int/") 
 
-                i += 1
+    # Use the special methods for one-hot encoding
+    cross_dataset_formatter.update_x_sequences_no_rep()
 
-        return activities, min_dists
+    num_common_actions = len(cross_dataset_formatter.common_action_to_int.keys()) + 1 # take into account 0 action which is not mapped to any
+    
 
-    ypred = []
+    # Common data structures
+    print("---------------------------------")
+    print("Common data structures info:")    
+    print("Activity to int:")
+    print("   Activities in training: " + str(len(cross_dataset_formatter.activity_to_int_dicts[0].keys())))
+    print("   Activities in testing: " + str(len(cross_dataset_formatter.activity_to_int_dicts[1].keys())))
+    print("   Common activities: " + str(len(cross_dataset_formatter.common_activity_to_int.keys())))    
+    print("Action to int:")
+    print("   Actions in training: " + str(len(cross_dataset_formatter.action_to_int_dicts[0].keys())))
+    print("   Actions in testing: " + str(len(cross_dataset_formatter.int_to_action_dicts[1].keys())))
+    print("   Common actions: " + str(num_common_actions))
+    
+    # X sequences to train        
+    X_train = np_utils.to_categorical(cross_dataset_formatter.X_seq_no_rep[0], num_classes = num_common_actions) # 0 corresponds to TRAIN_DATASET. We convert it to one hot encoding
+    # y one hot to train
+    y_train_onehot = cross_dataset_formatter.y_onehot_updated[0]
+    # y indices to train (for auxiliary tasks)
+    y_train_index = np.argmax(y_train_onehot, axis=1)    
+
+    # X sequences to test
+    X_test = np_utils.to_categorical(cross_dataset_formatter.X_seq_no_rep[1], num_classes = num_common_actions) # 1 corresponds to TEST_DATASET. We convert it to one hot encoding
+    # y one hot to test
+    y_test_onehot = cross_dataset_formatter.y_onehot_updated[1]
+    # y indices to test (for auxiliary tasks)
+    y_test_index = np.argmax(y_test_onehot, axis=1)
+
+    max_sequence_length = X_train.shape[1]    
+    TOTAL_ACTIVITIES = y_train_onehot.shape[1]
+    
+    print("X sequences:")
+    print('   X train shape:', X_train.shape)
+    print('   X test shape:', X_test.shape)
+    print("y labels:")    
+    print('   y train one hot shape:', y_train_onehot.shape)
+    print('   y test one hot shape:', y_test_onehot.shape)
+    print('   y train index shape:', y_train_index.shape)
+    print('   y test index shape:', y_test_index.shape)
+    
+    print('max sequence length (train, test): ' + str(max_sequence_length) + ", " + str(X_test.shape[1]))    
+    
+    train_distro_int = Counter(y_train_index)
+    test_distro_int = Counter(y_test_index)
+    train_distro_name = {}
+    for key in train_distro_int:
+        train_distro_name[cross_dataset_formatter.common_int_to_activity[key]] = train_distro_int[key]
+    
+    test_distro_name = {}
+    for key in test_distro_int:
+        test_distro_name[cross_dataset_formatter.common_int_to_activity[key]] = test_distro_int[key]
+
+
+    print("Activity distribution for training:")
+    pprint(train_distro_name)
+    print("Activity distribution for testing:")
+    pprint(test_distro_name)
+
+    # 2: Build the LSTM model (embedding layer frozen)
+    print('Building model...')
+    sys.stdout.flush()
+        
+    model = Sequential()            
+        
+    model.add(LSTM(512, return_sequences=False, recurrent_dropout=DROPOUT, dropout=DROPOUT, input_shape=(max_sequence_length, num_common_actions)))            
+    model.add(Dense(TOTAL_ACTIVITIES))
+    model.add(Activation('softmax'))        
+    model.compile(loss=LOSS, optimizer='adam', metrics=['accuracy', 'mse', 'mae'])
+    print('Model built')
+    print(model.summary())
+    sys.stdout.flush()    
+
+    # 4: Train the model with the imbalance-corrected training set and use the test set to validate
+    print('Training...')        
+    sys.stdout.flush()
+    
+    # Define the callbacks to be used (EarlyStopping and ModelCheckpoint)
+    # TODO: Do we need EarlyStopping here?
+    #earlystopping = EarlyStopping(monitor='val_loss', patience=100, verbose=0)    
+    # TODO: improve file naming for multiple architectures
+    weights_file = WEIGHTS + str(filenumber).zfill(2) + '-' + EXPERIMENT_ID + WEIGHTS_FILE_ROOT
+    modelcheckpoint = ModelCheckpoint(weights_file, monitor='loss', save_best_only=True, verbose=0)
+    callbacks = [modelcheckpoint]
+    history = model.fit(X_train, y_train_onehot, batch_size=BATCH_SIZE, epochs=EPOCHS, shuffle=True, callbacks=callbacks)
+    
+    # 5: Store the generated learning curves and metrics with the best model (ModelCheckpoint?) -> Conf option SAVE
+    plot_filename = PLOTS + str(filenumber).zfill(2) + '-' + TRAIN_DATASET + '-' + TEST_DATASET + '-' + EXPERIMENT_ID    
+    utils.plot_training_info(['loss'], True, history.history, plot_filename)
+    print("Plots saved in " + PLOTS)
+    
+    print("Training finished")
+
+    model.load_weights(weights_file)
+    yp = model.predict(X_test, batch_size=BATCH_SIZE, verbose=1)
+    print("yp shape: " + str(yp.shape))
+    print("   sample: " + str(yp[0]))
+    # Select the N_PREDS highest values
+    unsorted_ypreds = np.argpartition(yp, -N_PREDS, axis=1)[:, -N_PREDS:] # These indices are not sorted
+    ypreds = []
     for i in range(len(yp)):        
-        activities, dists = closest_k_activities(yp[i], activity_dict, k)        
-        acti_indices = np.full(len(activities), -1)
-        i = 0
-        for act_name in activities:
-            try:
-                acti_indices[i] = activity_to_int_dict[act_name]
-            except KeyError:
-                print("Activities: " + str(activities))
-                sys.exit()
-            
-            i += 1     
+        yp_i = yp[i]
+        unsorted_ypreds_i = unsorted_ypreds[i]
+        ypreds.append(np.flip(unsorted_ypreds_i[np.argsort(yp_i[unsorted_ypreds_i])], axis=0))
 
-        ypred.append(acti_indices)        
-        
-    ypred = np.array(ypred)    
-    unique_act_indices = np.unique(ypred)
-    #unique_act_names = [int_to_activity_dict[str(x)] for x in unique_act_indices]
-    print("Predicted unique activities:")
-    print(unique_act_indices)    
-
-    return ypred
+    ypreds = np.array(ypreds)    
     
-    """
-    # Adrian's approach, to be tested
-    # Build [activity_num, action_dim = 300] np.array using activity_dict and activity_to_int    
-    y = np.empty([len(int_to_activity_dict), 300])
-    for i in xrange(y.shape[0]):
-        activity = int_to_activity_dict[str(i)]
-        y[i] = activity_dict[activity]
+    print("ypreds shape: " + str(ypreds.shape))
+    print("   sample: " + str(ypreds[0]))
+    
+    ypreds1 = np.argmax(yp, axis=1)
 
-    #m = K.matmul(yp, K.transpose(y, [1, 0])) -> produces error
-    m = np.matmul(yp, np.transpose(y))
-    # Using this operation we have a [yp.shape[0], activity_num] matrix where each cell is the cosine similarity between a row in yp and an activity
-    # Use ypreds = np.argmax(m, axis=1) to retrieve the column (activity) with the maximum similarity to the prediction in yp
-    ypreds = np.argmax(m, axis=1)
+    ytrue = y_test_index
 
-    return ypreds
-    """
+    # Plot non-normalized confusion matrix -> Conf option SAVE
+    
+    results_file_root = RESULTS + str(filenumber).zfill(2) + '-' + TRAIN_DATASET + '-' + TEST_DATASET + '-' + EXPERIMENT_ID
+    labels = []
+    for i in cross_dataset_formatter.common_int_to_activity:
+        labels.append(cross_dataset_formatter.common_int_to_activity[i])
+    print("Classes for the heatmap (" + str(len(labels)) + ")")
+    print(labels)
+    utils.plot_heatmap(ytrue, ypreds1, classes=labels,
+                       title='Confusion matrix, without normalization: ' + TRAIN_DATASET + '-' + TEST_DATASET,
+                       path=results_file_root + '-cm.png')
+
+    # Plot normalized confusion matrix
+    utils.plot_heatmap(ytrue, ypreds1, classes=labels, normalize=True,
+                       title='Normalized confusion matrix: ' + TRAIN_DATASET + '-' + TEST_DATASET,
+                       path=results_file_root + '-cm-normalized.png')
+
+        
+    #Dictionary with the values for the metrics (precision, recall and f1)
+    metrics = utils.calculate_evaluation_metrics(ytrue, ypreds1)
+    # Calculate top-k accuracy (k=3 and k=5)
+    k = 3
+    acc_at_k = utils.calculate_accuracy_at_k(ytrue, ypreds, k)
+    key = "acc_at_" + str(k)
+    metrics[key] = acc_at_k
+    k = 5
+    acc_at_k = utils.calculate_accuracy_at_k(ytrue, ypreds, k)
+    key = "acc_at_" + str(k)
+    metrics[key] = acc_at_k
+
+    metrics_filename = RESULTS + str(filenumber).zfill(2) + '-' + TRAIN_DATASET + '-' + TEST_DATASET + '-' + EXPERIMENT_ID + '-complete-metrics.json'
+    with open(metrics_filename, 'w') as fp:
+        json.dump(metrics, fp, indent=4)
+    print("Metrics saved in " + metrics_filename)
+
+    
+    
+
 
 def print_configuration_info():
     """ Dummy function to print configuration parameters expressed as global variables in the script
@@ -189,8 +271,7 @@ def print_configuration_info():
     print("Selected test dataset:", TEST_DATASET)    
     print("Dataset base directory:", BASE_INPUT_DIR)    
     print("Daytime option:", DAYTIME)    
-    print("Nones option:", NONES)     
-    print("Selected action/activity representation:", OP)
+    print("Nones option:", NONES)         
     print("Number of epochs: ", EPOCHS)        
     print("Experiment ID:", EXPERIMENT_ID)
     print("Treat imbalance data:", TREAT_IMBALANCE)    

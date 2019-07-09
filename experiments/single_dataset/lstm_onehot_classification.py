@@ -35,11 +35,12 @@ from imblearn.over_sampling import SMOTE, RandomOverSampler
 
 from scipy.spatial import distance
 
+sys.path.append('..')
 from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-DATASET = 'kasterenA' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
+DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
 # Directory of formatted datasets
 BASE_INPUT_DIR = '../../formatted_datasets/' + DATASET + '/'
 # Select between 'with_time' and 'no_time'
@@ -57,7 +58,7 @@ EPOCHS = 3
 # Select batch size
 BATCH_SIZE = 256
 # Select dropout value
-DROPOUT = 0.1
+DROPOUT = 0.7
 # Select loss function
 LOSS = 'categorical_crossentropy' # 
 
@@ -157,11 +158,14 @@ def main(argv):
     fold = 0
     # 4: For each partition (train, test):
     metrics_per_fold = utils.init_metrics_per_fold()
+
+    best_epochs = []
     
     #for train, test in kf.split(X):
     for train, test in skf.split(X, y_index):
         print("%d Train: %s,  test: %s" % (fold, len(train), len(test)))        
         X_train = X_onehot[train]
+        X_train_index = X[train] # Needed for ROS
         y_train = y_index_onehot[train]
         y_train_index = y_index[train]
         X_val = X_onehot[test]
@@ -191,10 +195,11 @@ def main(argv):
             ros = RandomOverSampler(random_state=42) # sampling_strategy={4:10, 12:10, 14:10, 8:10, 13:10}
             print('Original dataset samples for training %s' % len(y_train_index))
             print('Original dataset shape for training %s' % Counter(y_train_index))
-            X_train_res, y_train_index_res = ros.fit_resample(X_train, y_train_index)
+            X_train_index_res, y_train_index_res = ros.fit_resample(X_train_index, y_train_index)
             print('Resampled dataset samples for training %s' % len(y_train_index_res))
             print('Resampled dataset shape for training %s' % Counter(y_train_index_res))
             y_train_res = np_utils.to_categorical(y_train_index_res)
+            X_train_res = np_utils.to_categorical(X_train_index_res)
             
             print("y_train_res shape: ", y_train_res.shape)
         else:
@@ -222,7 +227,9 @@ def main(argv):
                 
         # Print the best val_loss
         min_val_loss = min(history.history['val_loss'])
-        print("Validation loss: " + str(min_val_loss)+ " (epoch " + str(history.history['val_loss'].index(min_val_loss))+")")        
+        min_val_loss_index = history.history['val_loss'].index(min_val_loss) 
+        print("Validation loss: " + str(min_val_loss)+ " (epoch " + str(history.history['val_loss'].index(min_val_loss))+")")
+        best_epochs.append(min_val_loss_index)
         model.load_weights(weights_file)
         yp = model.predict(X_val, batch_size=BATCH_SIZE, verbose=1)
         # yp has the activity predictions (one-hot vectors)        
@@ -258,6 +265,7 @@ def main(argv):
     with open(metrics_filename, 'w') as fp:
         json.dump(metrics_per_fold, fp, indent=4)
     print("Metrics saved in " + metrics_filename)
+    print("Avg best epoch: " + str(np.mean(best_epochs)) + ", min: " + str(min(best_epochs)) + ", max: " + str(max(best_epochs)))
     #print(metrics_per_fold)
 
 def print_configuration_info():
