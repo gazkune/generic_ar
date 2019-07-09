@@ -80,6 +80,7 @@ class CrossDatasetFormatter:
     def reformat_datasets(self):
         """ Function to reformat datasets, which means:
         1) build_common_activity_to_int_dict
+        2) build_common_action_to_int_dict
         2) build_common_embedding_matrix
         3) update_x_sequences
         4) update_y_onehot
@@ -89,7 +90,7 @@ class CrossDatasetFormatter:
         self.build_common_activity_to_int_dict()
         self.build_common_action_to_int_dict()
         self.build_common_embedding_matrix()
-        self.update_x_sequences()
+        self.update_x_sequences()        
         self.update_y_onehot()
         self.build_common_activity_to_emb()
 
@@ -134,12 +135,9 @@ class CrossDatasetFormatter:
         """Function to fuse individual action_to_int dicts
         """
         self.common_action_to_int = {}
-        index = 0
-        counter = 0
-        for i in range(len(self.action_to_int_dicts)):
-            for key in self.action_to_int_dicts[i].keys():
-                #print("Activity: " + key)
-                counter += 1
+        index = 1 # Remember the 0 position of embedding matrix is for unknown actions
+        for i in range(len(self.action_to_int_dicts)):        
+            for key in self.action_to_int_dicts[i].keys():                
                 if not key in self.common_action_to_int:
                     self.common_action_to_int[key] = index
                     index += 1    
@@ -164,12 +162,14 @@ class CrossDatasetFormatter:
     def build_common_embedding_matrix(self):
         """Function to fuse all embbeding matrices
         Take into account that all individual embedding matrices have the first element reserved for unknown words (0 vector)
+        NOTE: this approach repeats embedding vectors for repeated actions in differente datasets (e.g. the embedding for
+        "front_door" may appear twice)
         """
         self.common_embedding_matrix = self.embedding_weights[0]        
         for i in range(1, len(self.embedding_weights)):           
-            self.common_embedding_matrix = np.concatenate((self.common_embedding_matrix, self.embedding_weights[i][1:]), axis=0)
+            self.common_embedding_matrix = np.concatenate((self.common_embedding_matrix, self.embedding_weights[i][1:]), axis=0)    
 
-    
+
     def update_x_sequences(self):
         """Function to update X_sequences with the new indices of common embedding matrix and the new sequence length
         extracted from the maximum length of the datasets
@@ -200,7 +200,6 @@ class CrossDatasetFormatter:
         for i in range(len(self.X_seq_updated)):        
             self.X_seq_updated[i] = pad_sequences(self.X_seq_updated[i], maxlen=maxlen, dtype='float32')
     
-    
     def test_view_x_seq_updated(self):
         """Function to test and view whether X_seq_updated is well formatted
         """
@@ -228,6 +227,69 @@ class CrossDatasetFormatter:
                     emb = self.common_embedding_matrix[k]
                     print("Corresponding embedding:")
                     print(emb)
+    
+    
+    def update_x_sequences_no_rep(self):
+        """Function to update X_sequences with the new indices of common embedding matrix and the new sequence length
+        extracted from the maximum length of the datasets
+        NOTE: this approach cannot be used with the common embedding matrix, since it is designed to work with one-hot encoding,
+        avoiding action repetion (it uses the same index for the same actions across datasets)
+        """
+        self.X_seq_no_rep = []
+        dataset = 0
+        for x in self.X_sequences:
+            x_updated = []
+            for seq in x:
+                # This a 1-d array with "old" action indices
+                seq_updated = []
+                for action_index in seq:
+                    if action_index != 0:
+                        action_name = self.int_to_action_dicts[dataset][str(int(action_index))]
+                        new_index = self.common_action_to_int[action_name]
+                    else:
+                        new_index = 0
+                    seq_updated.append(new_index)
+
+                
+                x_updated.append(seq_updated)
+
+            self.X_seq_no_rep.append(np.array(x_updated))
+            dataset += 1
+        
+        maxlen = 0
+        for x in self.X_sequences:
+            maxlen = max(maxlen, x.shape[1])
+            
+        for i in range(len(self.X_seq_no_rep)):
+            self.X_seq_no_rep[i] = pad_sequences(self.X_seq_no_rep[i], maxlen=maxlen, dtype='float32')       
+        
+    def test_view_x_seq_no_rep(self):
+        """Function to test and view whether X_seq_no_rep is well formatted
+        """
+        for i in range(len(self.X_sequences)):
+            X = self.X_sequences[i]
+            X_up = self.X_seq_no_rep[i]
+            sample = random.randint(0, X.shape[0]-1)
+            print("Sample of X " + str(i))
+            print(X[sample])
+       
+            for j in X[sample]:
+                j = j.astype(int)
+                if j != 0:                    
+                    print(self.int_to_action_dicts[i][str(j)], end=" | ")                    
+       
+            print("")
+            print("Sample of X updated " + str(i))
+            print(X_up[sample])
+       
+            for k in X_up[sample]:
+                k = k.astype(int)
+                if k != 0:                
+                    print(self.common_int_to_action[k], end=" | ")
+            
+            print("")
+
+    
 
 
     def update_y_onehot(self):
@@ -236,9 +298,9 @@ class CrossDatasetFormatter:
         """
         num_classes = len(self.common_activity_to_int.keys())
         self.y_onehot_updated = []
-        for i in range(len(self.y_onehot)):
+        for i in range(len(self.y_onehot)):            
             y = self.y_onehot[i]
-            int_to_activity = self.int_to_activity_dicts[i]
+            int_to_activity = self.int_to_activity_dicts[i]            
             y_up = []
             for one_hot in y:            
                 index = np.argmax(one_hot, axis=0)            
@@ -308,7 +370,7 @@ Main function used to test the functionality of CrossDatasetFormatter class
 
 def main(argv):
     # List of datasets to reformat and fuse
-    DATASETS = ['kasterenC', 'kasterenB']
+    DATASETS = ['kasterenA', 'kasterenB']
     # Directories of formatted datasets
     BASE_INPUT_DIR = '../../formatted_datasets/'
 
@@ -342,6 +404,17 @@ def main(argv):
     print(common_int_to_activity)
     print("--------------------------------------")
     print("common embedding matrix shape: ", common_embedding_matrix.shape)
+
+    # New method update_x_sequences_no_rep
+    cross_dataset_formatter.update_x_sequences_no_rep()
+    print("--------------------------------------")
+    i = 0
+    for x_seq in cross_dataset_formatter.X_seq_no_rep:
+        print("X seq no rep shape for dataset " + str(i) + ": " + str(cross_dataset_formatter.X_seq_no_rep[i].shape))
+        i += 1
+    
+    cross_dataset_formatter.test_view_x_seq_no_rep()    
+
     print("--------------------------------------")
     print("Test and view X sequences updated samples:")
     cross_dataset_formatter.test_view_x_seq_updated()

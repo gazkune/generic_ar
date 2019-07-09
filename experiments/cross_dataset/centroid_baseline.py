@@ -156,6 +156,7 @@ def main(argv):
     ytrue = y_index
     print("ytrue shape: ", ytrue.shape)
     print("ypreds shape: ", ypreds.shape)
+    sys.exit()
     
     ypreds1 = ypreds[:, 0]
     # Plot non-normalized confusion matrix -> Conf option SAVE
