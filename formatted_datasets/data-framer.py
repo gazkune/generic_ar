@@ -23,9 +23,10 @@ import random
 
 # Directory of original datasets 
 DIR = '../datasets/'
-DATASET = 'kasterenA'
+DATASET = 'tapia'
 # Choose the specific dataset
-CSV = DIR + DATASET + '/' + DATASET + '_groundtruth.csv'
+#CSV = DIR + DATASET + '/' + DATASET + '_groundtruth.csv'
+CSV = DIR + DATASET + '/' + 'mit_s1-m.csv'
 
 # Number of dimensions of an action vector
 WORD_DIM = 300 # Make coherent with selected WORD2VEC_MODEL
@@ -43,7 +44,12 @@ DAYTIME = 'with_time' # select between 'no_time' and 'with_time'
 NONES = 'no_nones' # select between 'no_nones' and 'with_nones'
 
 OUTPUT_DIR = DATASET + '/complete/' + DAYTIME + '_' + NONES
-OUTPUT_ROOT_NAME = DATASET + '_' + OP + '_' + str(DELTA) # make coherent with WORD2VEC_MODEL
+SUBDESCR = "s1" # As Tapia dataset has two subjects, we use this variable to distinguish (for the rest of datasets use "")
+OUTPUT_ROOT_NAME = ""
+if SUBDESCR == "":
+    OUTPUT_ROOT_NAME = DATASET + '_' + OP + '_' + str(DELTA)
+else:
+    OUTPUT_ROOT_NAME = DATASET + '_' + SUBDESCR + '_' + OP + '_' + str(DELTA)
 
 # We have to define temporal slots of a day
 # For that purpose use TEMPORAL_DICT
@@ -99,7 +105,7 @@ def prepare_embeddings(df, action_dict, activity_dict, temporal_dict, activity_t
     # has the action names with some capital letters
     # Very important to remove '.' and '_' from filters, since they are used
     # in action names (plates_cupboard)
-    tokenizer = Tokenizer(lower=False, filters='!"#$%&()*+,-/:;<=>?@[\\]^`{|}~\t\n')
+    tokenizer = Tokenizer(lower=False, filters='!"#$%&()*+,/:;<=>?@[\\]^`{|}~\t\n')
     tokenizer.fit_on_texts(words)
     word_index = tokenizer.word_index
     print("prepare_embeddings: action_index:")
@@ -111,7 +117,7 @@ def prepare_embeddings(df, action_dict, activity_dict, temporal_dict, activity_t
     # day periods are also present. However, day periods will be integrated
     # afterwards (every action sequence will have a day period)    
     trans_actions = np.zeros(len(actions))
-    for i in xrange(len(actions)):
+    for i in range(len(actions)):
         #print "prepare_embeddings: action:", actions[i]        
         trans_actions[i] = word_index[actions[i]]
 
@@ -407,9 +413,7 @@ def main(argv):
         json.dump(action_to_int, fp, indent=4)
         
     with open(DATASET+"/int_to_action_"+NONES+".json", 'w') as fp:
-        json.dump(int_to_action, fp, indent=4)
-    
-    sys.exit()
+        json.dump(int_to_action, fp, indent=4)    
     
     print("max sequence length: ", max_sequence_length)
     print("X shape: ", X.shape)

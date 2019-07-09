@@ -20,9 +20,9 @@ import json
 
 # Directory of datasets
 DIR = '../datasets/'
-DATASET = 'kasterenC' # Currently: 'kasterenA', 'kasterenB', 'kasterenC', 'tapia' (this one is empty yet)
+DATASET = 'tapia' # Currently: 'kasterenA', 'kasterenB', 'kasterenC', 'tapia' (this one is empty yet)
 # Choose the specific dataset: '/kasterenA_groundtruth.csv', '/kasterenB_groundtruth.csv', '/kasterenC_groundtruth.csv'
-CSV = DIR + DATASET + '/kasterenC_groundtruth.csv'
+CSV = DIR + DATASET + '/mit_s1-m.csv'
 
 # Word2Vec model
 WORD2VEC_MODEL = '../word_models/GoogleNews-vectors-negative300.bin.gz' # d=300
@@ -31,7 +31,11 @@ WORD2VEC_MODEL = '../word_models/GoogleNews-vectors-negative300.bin.gz' # d=300
 ACTION_DIM = 300 # Make coherent with selected WORD2VEC_MODEL
 
 # Options for action representation
-OP = 'avg' # 'sum' and 'avg' are the current options
+OP = 'sum' # 'sum' and 'avg' are the current options
+
+# Option to use the location name of a given sensor for its representation (specially designed for Tapia dataset, where
+# many sensors share the same name but use a int ID to distinguish their location)
+USE_LOCATION = False
 
 # Root name for output files
 OUTPUT_ROOT = 'word_' + OP + '_'
@@ -44,16 +48,33 @@ TEMPORAL_DICT = {'morning': {'day_change': False,'start': datetime.time(hour=9),
                  'evening': {'day_change': False, 'start': datetime.time(hour=19), 'end': datetime.time(hour=22)}, 
                  'night': {'day_change': True, 'start': datetime.time(hour=22), 'end': datetime.time(hour=9)}}
 
+# List of word to be ignored
+IGNORE_WORD_LIST = ['to', 'pir', '-', 'a']
+
+def is_integer(word):
+    # Function to chech whether a given string represents an integer number
+    try:
+        int(word)
+        return True
+    except ValueError:
+        return False
+        
 def sum_action_representation(action, model):
     # Function to represent an action/activity suming the embeddings of constituente words
     words = action.split('_')
     embedding = np.zeros(ACTION_DIM) 
     for word in words:
-        if word != 'to' and word != 'pir': # word 'to' is not in the model (??); the word 'pir' has a totally different meaning
+        word = word.lower()
+        if word not in IGNORE_WORD_LIST: # word 'to' is not in the model (??); the word 'pir' has a totally different meaning
             if word == 'cutlary': # KasterenB contains 'cutlary' when it should be 'cutlery'
                 embedding = embedding + model['cutlery']
+            elif is_integer(word):
+                if USE_LOCATION == True:
+                    print("Use location of " + word)
+                    # TODO: use sensors_s1.csv file to assign locations to sensors
             else:   
-                embedding = embedding + model[word]        
+                embedding = embedding + model[word]
+        
     
     return embedding
 
@@ -63,9 +84,13 @@ def avg_action_representation(action, model):
     words = action.split('_')
     embedding = np.zeros(ACTION_DIM) 
     for word in words:
-        if word != 'to' and word != 'pir': # word 'to' is not in the model (??); the word 'pir' has a totally different meaning
+        if word not in IGNORE_WORD_LIST: # word 'to' is not in the model (??); the word 'pir' has a totally different meaning
             if word == 'cutlary': # KasterenB contains 'cutlary' when it should be 'cutlery'
                 embedding = embedding + model['cutlery']
+            elif is_integer(word):
+                if USE_LOCATION == True:
+                    print("Use location of " + word)
+                    # TODO: use sensors_s1.csv file to assign locations to sensors
             else:   
                 embedding = embedding + model[word]
     
@@ -149,7 +174,7 @@ def main(argv):
     model = KeyedVectors.load_word2vec_format(WORD2VEC_MODEL, binary=True)
     print "Model loaded"
         
-    # action_dict holds a word vector (dependind on OP variable) for each action in df
+    # action_dict holds a word vector (depending on OP variable) for each action in df
     action_dict = build_action_representation(df, model)
     
     # Build another dictionary for temporal concepts
