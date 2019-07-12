@@ -35,11 +35,12 @@ from imblearn.over_sampling import SMOTE, RandomOverSampler
 
 from scipy.spatial import distance
 
+sys.path.append('..')
 from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-DATASET = 'kasterenA' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
+DATASET = 'tapia_s1' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
 # Directory of formatted datasets
 BASE_INPUT_DIR = '../../formatted_datasets/' + DATASET + '/'
 # Select between 'with_time' and 'no_time'
@@ -51,13 +52,13 @@ OP = 'sum'
 # Select the muber of folds in the cross-validation process
 FOLDS = 10
 # Select imbalance data treatment
-TREAT_IMBALANCE = True
+TREAT_IMBALANCE = False
 # Select the number of epochs for training
 EPOCHS = 300
 # Select batch size
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 # Select dropout value
-DROPOUT = 0.1
+DROPOUT = 0.8
 # Select loss function
 LOSS = 'categorical_crossentropy' # 
 

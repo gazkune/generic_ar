@@ -26,8 +26,8 @@ from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-TRAIN_DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
-TEST_DATASET = 'kasterenB' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
+TRAIN_DATASET = 'tapia_s1' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
+TEST_DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
 DATASETS = [TRAIN_DATASET, TEST_DATASET]
 # Directories of formatted datasets
 BASE_INPUT_DIR = '../../formatted_datasets/'

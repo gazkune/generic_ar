@@ -39,7 +39,7 @@ from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
+DATASET = 'tapia_s1' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
 # Directory of formatted datasets
 BASE_INPUT_DIR = '../../formatted_datasets/' + DATASET + '/'
 # Select between 'with_time' and 'no_time'
@@ -53,13 +53,15 @@ FOLDS = 10
 # Select imbalance data treatment
 TREAT_IMBALANCE = False
 # Select the number of epochs for training
-EPOCHS = 300
+EPOCHS = 200
 # Select batch size
-BATCH_SIZE = 1024
+BATCH_SIZE = 128
 # Select dropout value
-DROPOUT = 0.7
+DROPOUT = 0.8
 # Select loss function
 LOSS = 'cosine_proximity'
+# Select whether the embedding layer should be trainable
+EMB_TRAINABLE = True
 #LOSS = 'mean_squared_error'
 # Select the optimizer
 OPTIMIZER = 'adam' 
@@ -198,7 +200,7 @@ def main(argv):
         
         model = Sequential()
     
-        model.add(Embedding(input_dim=embedding_matrix.shape[0], output_dim=embedding_matrix.shape[1], weights=[embedding_matrix], input_length=max_sequence_length, trainable=False))
+        model.add(Embedding(input_dim=embedding_matrix.shape[0], output_dim=embedding_matrix.shape[1], weights=[embedding_matrix], input_length=max_sequence_length, trainable=EMB_TRAINABLE))
         # Change input shape when using embeddings
         model.add(LSTM(512, return_sequences=False, recurrent_dropout=DROPOUT, dropout=DROPOUT, input_shape=(max_sequence_length, embedding_matrix.shape[1])))        
         # For regression use a linear dense layer with embedding_matrix.shape[1] size (300 in this case)

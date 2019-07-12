@@ -36,8 +36,8 @@ from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-TRAIN_DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
-TEST_DATASET = 'kasterenB' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
+TRAIN_DATASET = 'tapia_s1' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
+TEST_DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
 DATASETS = [TRAIN_DATASET, TEST_DATASET]
 # Directories of formatted datasets
 BASE_INPUT_DIR = '../../formatted_datasets/'
@@ -50,11 +50,11 @@ OP = 'sum'
 # Select imbalance data treatment
 TREAT_IMBALANCE = False
 # Select the number of epochs for training
-EPOCHS = 169
+EPOCHS = 54
 # Select batch size
-BATCH_SIZE = 256
+BATCH_SIZE = 512
 # Select dropout value
-DROPOUT = 0.7
+DROPOUT = 0.2
 # Select loss function
 LOSS = 'categorical_crossentropy'
 # Select the number of predictions to calculate

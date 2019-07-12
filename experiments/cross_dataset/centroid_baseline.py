@@ -29,7 +29,7 @@ from utils import Utils
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
 # Dataset
-DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
+DATASET = 'tapia_s1' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
 # Directory of formatted datasets
 BASE_INPUT_DIR = '../../formatted_datasets/' + DATASET + '/'
 # Select between 'with_time' and 'no_time'
@@ -155,8 +155,7 @@ def main(argv):
     # Calculate the metrics        
     ytrue = y_index
     print("ytrue shape: ", ytrue.shape)
-    print("ypreds shape: ", ypreds.shape)
-    sys.exit()
+    print("ypreds shape: ", ypreds.shape)    
     
     ypreds1 = ypreds[:, 0]
     # Plot non-normalized confusion matrix -> Conf option SAVE

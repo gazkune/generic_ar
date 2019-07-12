@@ -40,7 +40,7 @@ from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia'
+DATASET = 'tapia_s1' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
 # Directory of formatted datasets
 BASE_INPUT_DIR = '../../formatted_datasets/' + DATASET + '/'
 # Select between 'with_time' and 'no_time'
@@ -56,9 +56,9 @@ TREAT_IMBALANCE = False
 # Select the number of epochs for training
 EPOCHS = 300
 # Select batch size
-BATCH_SIZE = 256
+BATCH_SIZE = 512
 # Select dropout value
-DROPOUT = 0.7
+DROPOUT = 0.3
 # Select loss function
 LOSS = 'categorical_crossentropy' # 
 
