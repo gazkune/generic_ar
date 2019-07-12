@@ -34,7 +34,7 @@ WORD_DIM = 300 # Make coherent with selected WORD2VEC_MODEL
 OP = 'sum' # 'sum' and 'avg' are the current options
 
 # Option for sequence segmentation using its duration
-DELTA = 60 # size of the sliding window for action segmentation in seconds (Kasteren et al use 60 seconds)
+DELTA = 0 # size of the sliding window for action segmentation in seconds (Kasteren et al use 60 seconds)
 
 # Option to include (or not) day time period in each of the sequences (ex: [morning, frontdoor, frontdoor])
 DAYTIME = 'with_time' # select between 'no_time' and 'with_time'
@@ -409,7 +409,7 @@ def main(argv):
     with open(DATASET+"/int_to_action_"+NONES+".json", 'w') as fp:
         json.dump(int_to_action, fp, indent=4)
     
-    sys.exit()
+    
     
     print("max sequence length: ", max_sequence_length)
     print("X shape: ", X.shape)
