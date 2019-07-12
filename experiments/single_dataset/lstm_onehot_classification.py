@@ -54,7 +54,7 @@ FOLDS = 10
 # Select imbalance data treatment
 TREAT_IMBALANCE = False
 # Select the number of epochs for training
-EPOCHS = 300
+EPOCHS = 3
 # Select batch size
 BATCH_SIZE = 512
 # Select dropout value
