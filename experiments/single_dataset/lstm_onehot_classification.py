@@ -130,9 +130,9 @@ def main(argv):
 
     # Load X and y sequences (for y, load both, the embedding and index version)    
     X = np.load(X_FILE)
-    X_onehot = np_utils.to_categorical(X)    
+    X_onehot = np_utils.to_categorical(X)
     # We need the following two lines for StratifiedKFold and classification
-    y_index_onehot = np.load(Y_INDEX_FILE) 
+    y_index_onehot = np.load(Y_INDEX_FILE)
     y_index = np.argmax(y_index_onehot, axis=1)
 
     max_sequence_length = X.shape[1]

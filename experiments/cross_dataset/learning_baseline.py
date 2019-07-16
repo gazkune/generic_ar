@@ -36,8 +36,8 @@ from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-TRAIN_DATASET = 'tapia_s1' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
-TEST_DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
+TRAIN_DATASET = 'kasterenA' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
+TEST_DATASET = 'kasterenB' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
 DATASETS = [TRAIN_DATASET, TEST_DATASET]
 # Directories of formatted datasets
 BASE_INPUT_DIR = '../../formatted_datasets/'
@@ -47,6 +47,8 @@ DAYTIME = 'with_time'
 NONES = 'no_nones'
 # Select between 'avg' and 'sum' for action/activity representation
 OP = 'sum'
+# Select segmentation period (0: perfect segmentation)
+DELTA = 60
 # Select imbalance data treatment
 TREAT_IMBALANCE = False
 # Select the number of epochs for training
@@ -99,12 +101,14 @@ def main(argv):
     
     # 1: Load data (X and y_emb)
     print('Loading and formatting data')
-    cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP)
+    cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP, DELTA)
+    # We will use stemmed activities
+    cross_dataset_formatter.set_stemmer(True)
     # Use only the needed methods
     cross_dataset_formatter.build_common_activity_to_int_dict()
     cross_dataset_formatter.build_common_action_to_int_dict()
     cross_dataset_formatter.update_x_sequences_no_rep()
-    cross_dataset_formatter.update_y_onehot()    
+    cross_dataset_formatter.update_y_onehot()
     
     cross_dataset_formatter.save_common_activity_int_dicts("cross_activity_int/") 
 
@@ -120,7 +124,7 @@ def main(argv):
     print("Activity to int:")
     print("   Activities in training: " + str(len(cross_dataset_formatter.activity_to_int_dicts[0].keys())))
     print("   Activities in testing: " + str(len(cross_dataset_formatter.activity_to_int_dicts[1].keys())))
-    print("   Common activities: " + str(len(cross_dataset_formatter.common_activity_to_int.keys())))    
+    print("   Common stemmed activities: " + str(len(cross_dataset_formatter.stemmed_activity_to_int.keys())))    
     print("Action to int:")
     print("   Actions in training: " + str(len(cross_dataset_formatter.action_to_int_dicts[0].keys())))
     print("   Actions in testing: " + str(len(cross_dataset_formatter.int_to_action_dicts[1].keys())))
@@ -129,14 +133,14 @@ def main(argv):
     # X sequences to train        
     X_train = np_utils.to_categorical(cross_dataset_formatter.X_seq_no_rep[0], num_classes = num_common_actions) # 0 corresponds to TRAIN_DATASET. We convert it to one hot encoding
     # y one hot to train
-    y_train_onehot = cross_dataset_formatter.y_onehot_updated[0]
+    y_train_onehot = cross_dataset_formatter.y_stemmed_onehot_updated[0]
     # y indices to train (for auxiliary tasks)
     y_train_index = np.argmax(y_train_onehot, axis=1)    
 
     # X sequences to test
     X_test = np_utils.to_categorical(cross_dataset_formatter.X_seq_no_rep[1], num_classes = num_common_actions) # 1 corresponds to TEST_DATASET. We convert it to one hot encoding
     # y one hot to test
-    y_test_onehot = cross_dataset_formatter.y_onehot_updated[1]
+    y_test_onehot = cross_dataset_formatter.y_stemmed_onehot_updated[1]
     # y indices to test (for auxiliary tasks)
     y_test_index = np.argmax(y_test_onehot, axis=1)
 
@@ -158,11 +162,11 @@ def main(argv):
     test_distro_int = Counter(y_test_index)
     train_distro_name = {}
     for key in train_distro_int:
-        train_distro_name[cross_dataset_formatter.common_int_to_activity[key]] = train_distro_int[key]
+        train_distro_name[cross_dataset_formatter.stemmed_int_to_activity[key]] = train_distro_int[key]
     
     test_distro_name = {}
     for key in test_distro_int:
-        test_distro_name[cross_dataset_formatter.common_int_to_activity[key]] = test_distro_int[key]
+        test_distro_name[cross_dataset_formatter.stemmed_int_to_activity[key]] = test_distro_int[key]
 
 
     print("Activity distribution for training:")
@@ -176,7 +180,7 @@ def main(argv):
         
     model = Sequential()            
         
-    model.add(LSTM(512, return_sequences=False, recurrent_dropout=DROPOUT, dropout=DROPOUT, input_shape=(max_sequence_length, num_common_actions)))            
+    model.add(LSTM(512, return_sequences=False, recurrent_dropout=DROPOUT, dropout=DROPOUT, input_shape=(max_sequence_length, num_common_actions)))
     model.add(Dense(TOTAL_ACTIVITIES))
     model.add(Activation('softmax'))        
     model.compile(loss=LOSS, optimizer='adam', metrics=['accuracy', 'mse', 'mae'])
@@ -184,14 +188,11 @@ def main(argv):
     print(model.summary())
     sys.stdout.flush()    
 
-    # 4: Train the model with the imbalance-corrected training set and use the test set to validate
+    # 4: Train the model
     print('Training...')        
     sys.stdout.flush()
     
-    # Define the callbacks to be used (EarlyStopping and ModelCheckpoint)
-    # TODO: Do we need EarlyStopping here?
-    #earlystopping = EarlyStopping(monitor='val_loss', patience=100, verbose=0)    
-    # TODO: improve file naming for multiple architectures
+    # Define the callbacks to be used (ModelCheckpoint)    
     weights_file = WEIGHTS + str(filenumber).zfill(2) + '-' + EXPERIMENT_ID + WEIGHTS_FILE_ROOT
     modelcheckpoint = ModelCheckpoint(weights_file, monitor='loss', save_best_only=True, verbose=0)
     callbacks = [modelcheckpoint]
@@ -216,7 +217,7 @@ def main(argv):
         unsorted_ypreds_i = unsorted_ypreds[i]
         ypreds.append(np.flip(unsorted_ypreds_i[np.argsort(yp_i[unsorted_ypreds_i])], axis=0))
 
-    ypreds = np.array(ypreds)    
+    ypreds = np.array(ypreds)
     
     print("ypreds shape: " + str(ypreds.shape))
     print("   sample: " + str(ypreds[0]))
@@ -225,12 +226,11 @@ def main(argv):
 
     ytrue = y_test_index
 
-    # Plot non-normalized confusion matrix -> Conf option SAVE
-    
+    # Plot non-normalized confusion matrix -> Conf option SAVE    
     results_file_root = RESULTS + str(filenumber).zfill(2) + '-' + TRAIN_DATASET + '-' + TEST_DATASET + '-' + EXPERIMENT_ID
     labels = []
-    for i in cross_dataset_formatter.common_int_to_activity:
-        labels.append(cross_dataset_formatter.common_int_to_activity[i])
+    for i in cross_dataset_formatter.stemmed_int_to_activity:
+        labels.append(cross_dataset_formatter.stemmed_int_to_activity[i])
     print("Classes for the heatmap (" + str(len(labels)) + ")")
     print(labels)
     utils.plot_heatmap(ytrue, ypreds1, classes=labels,
@@ -258,10 +258,7 @@ def main(argv):
     metrics_filename = RESULTS + str(filenumber).zfill(2) + '-' + TRAIN_DATASET + '-' + TEST_DATASET + '-' + EXPERIMENT_ID + '-complete-metrics.json'
     with open(metrics_filename, 'w') as fp:
         json.dump(metrics, fp, indent=4)
-    print("Metrics saved in " + metrics_filename)
-
-    
-    
+    print("Metrics saved in " + metrics_filename)    
 
 
 def print_configuration_info():
@@ -279,8 +276,6 @@ def print_configuration_info():
     print("Dropout:", DROPOUT)
     print("Loss:", LOSS)
     print("Number of predictions:", N_PREDS)
-
-
 
 if __name__ == "__main__":
    main(sys.argv)

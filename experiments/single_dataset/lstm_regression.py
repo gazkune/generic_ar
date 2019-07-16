@@ -48,21 +48,23 @@ DAYTIME = 'with_time'
 NONES = 'no_nones'
 # Select between 'avg' and 'sum' for action/activity representation
 OP = 'sum'
+DELTA = "60" # Use 60 seconds segmented sequences
+#DELTA = "0" # Use perfect segmentation (max sequence length truncated)
 # Select the muber of folds in the cross-validation process
 FOLDS = 10
 # Select imbalance data treatment
 TREAT_IMBALANCE = False
 # Select the number of epochs for training
-EPOCHS = 200
+EPOCHS = 150
 # Select batch size
-BATCH_SIZE = 128
+BATCH_SIZE = 256
 # Select dropout value
 DROPOUT = 0.8
 # Select loss function
 LOSS = 'cosine_proximity'
-# Select whether the embedding layer should be trainable
-EMB_TRAINABLE = True
 #LOSS = 'mean_squared_error'
+# Select whether the embedding layer should be trainable
+EMB_TRAINABLE = False
 # Select the optimizer
 OPTIMIZER = 'adam' 
 #OPTIMIZER = 'rmsprop'
@@ -74,13 +76,14 @@ SAVE = False
 # Directory where X, Y and Embedding files are stored
 INPUT_DIR = BASE_INPUT_DIR + 'complete/' + DAYTIME + '_' + NONES + '/'
 
+
 # File where the embedding matrix weights are stored to initialize the embedding layer of the network
-EMBEDDING_WEIGHTS = INPUT_DIR + DATASET + '_' + OP + '_60_embedding_weights.npy'
+EMBEDDING_WEIGHTS = INPUT_DIR + DATASET + '_' + OP + '_' + DELTA + '_embedding_weights.npy'
 # File where action sequences are stored
-X_FILE = INPUT_DIR + DATASET + '_' + OP + '_60_x.npy'
+X_FILE = INPUT_DIR + DATASET + '_' + OP + '_' + DELTA + '_x.npy'
 # File where activity labels for the corresponding action sequences are stored in word embedding format (for regression)
-Y_EMB_FILE = INPUT_DIR + DATASET + '_' + OP + '_60_y_embedding.npy'
-Y_INDEX_FILE = INPUT_DIR + DATASET + '_' + OP + '_60_y_index.npy'
+Y_EMB_FILE = INPUT_DIR + DATASET + '_' + OP + '_' + DELTA + '_y_embedding.npy'
+Y_INDEX_FILE = INPUT_DIR + DATASET + '_' + OP + '_' + DELTA + '_y_index.npy'
 
 
 # To convert the predicted embedding by the regressor to a class we need the json file with that association

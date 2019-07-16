@@ -53,14 +53,16 @@ DAYTIME = 'with_time'
 NONES = 'no_nones'
 # Select between 'avg' and 'sum' for action/activity representation
 OP = 'sum'
+# Select segmentation period (0: perfect segmentation)
+DELTA = 0
 # Select imbalance data treatment
 TREAT_IMBALANCE = False
 # Select the number of epochs for training
-EPOCHS = 68
+EPOCHS = 63
 # Select batch size
 BATCH_SIZE = 128
 # Select dropout value
-DROPOUT = 0.7
+DROPOUT = 0.1
 # Select loss function
 LOSS = 'cosine_proximity' # 'cosine_proximity' # 'mean_squared_error'
 # Select the number of predictions to calculate
@@ -106,7 +108,7 @@ def main(argv):
     
     # 1: Load data (X and y_emb)
     print('Loading and formatting data')
-    cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP)
+    cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP, DELTA)
     X_seq_up, y_onehot_up, common_embedding_matrix, common_activity_to_int, common_int_to_activity, common_activity_to_emb = cross_dataset_formatter.reformat_datasets()
     cross_dataset_formatter.save_common_activity_int_dicts("cross_activity_int/")
     #print("Comon activity to embedding indices:")
@@ -132,7 +134,7 @@ def main(argv):
     # y indices to train (for auxiliary tasks)
     y_train_index = np.argmax(y_train_onehot, axis=1)
     # y embeddings to train
-    filename = BASE_INPUT_DIR + TRAIN_DATASET + '/complete/' + DAYTIME + '_' + NONES + '/' + TRAIN_DATASET + '_' + OP  + '_60_y_embedding.npy'
+    filename = BASE_INPUT_DIR + TRAIN_DATASET + '/complete/' + DAYTIME + '_' + NONES + '/' + TRAIN_DATASET + '_' + OP  + '_' + str(DELTA) + '_y_embedding.npy'
     print("File name for y embedding (train): " + filename)
     y_train_emb = np.load(filename)
 
@@ -143,7 +145,7 @@ def main(argv):
     # y indices to test (for auxiliary tasks)
     y_test_index = np.argmax(y_test_onehot, axis=1)
     # y embeddings to test
-    filename = BASE_INPUT_DIR + TEST_DATASET + '/complete/' + DAYTIME + '_' + NONES + '/' + TEST_DATASET + '_' + OP  + '_60_y_embedding.npy'
+    filename = BASE_INPUT_DIR + TEST_DATASET + '/complete/' + DAYTIME + '_' + NONES + '/' + TEST_DATASET + '_' + OP  + '_' + str(DELTA) + '_y_embedding.npy'
     print("File name for y embedding (test): " + filename)
     y_test_emb = np.load(filename)
 
@@ -405,6 +407,7 @@ def print_configuration_info():
     print("Daytime option:", DAYTIME)    
     print("Nones option:", NONES)     
     print("Selected action/activity representation:", OP)
+    print("Selected delta:", DELTA)
     print("Number of epochs: ", EPOCHS)        
     print("Experiment ID:", EXPERIMENT_ID)
     print("Treat imbalance data:", TREAT_IMBALANCE)    

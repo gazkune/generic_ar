@@ -26,8 +26,8 @@ from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-TRAIN_DATASET = 'tapia_s1' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
-TEST_DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
+TRAIN_DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
+TEST_DATASET = 'tapia_s1' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
 DATASETS = [TRAIN_DATASET, TEST_DATASET]
 # Directories of formatted datasets
 BASE_INPUT_DIR = '../../formatted_datasets/'
@@ -37,6 +37,8 @@ DAYTIME = 'with_time'
 NONES = 'no_nones'
 # Select between 'avg' and 'sum' for action/activity representation
 OP = 'sum'
+# Select segmentation period (0: perfect segmentation)
+DELTA = 60
 # Select the number of predictions to calculate
 N_PREDS = 5
 # Select between weighted random (using train distro) or not
@@ -67,7 +69,7 @@ def main(argv):
     
     # 1: Load data (X and y_emb)
     print('Loading and formatting data')
-    cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP)
+    cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP, DELTA)
     X_seq_up, y_onehot_up, common_embedding_matrix, common_activity_to_int, common_int_to_activity, common_activity_to_emb = cross_dataset_formatter.reformat_datasets()
     
     # Common data structures

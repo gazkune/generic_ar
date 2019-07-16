@@ -20,8 +20,8 @@ import json
 
 # Directory of datasets
 DIR = '../datasets/'
-DATASET = 'tapia' # Currently: 'kasterenA', 'kasterenB', 'kasterenC', 'tapia' (this one is empty yet)
-# Choose the specific dataset: '/kasterenA_groundtruth.csv', '/kasterenB_groundtruth.csv', '/kasterenC_groundtruth.csv'
+DATASET = 'tapia_s1' # Currently: 'kasterenA', 'kasterenB', 'kasterenC', 'tapia_s1'
+# Choose the specific dataset: '/kasterenA_groundtruth.csv', '/kasterenB_groundtruth.csv', '/kasterenC_groundtruth.csv', '/mit_s1-m.csv'
 CSV = DIR + DATASET + '/mit_s1-m.csv'
 
 # Word2Vec model
@@ -34,8 +34,9 @@ ACTION_DIM = 300 # Make coherent with selected WORD2VEC_MODEL
 OP = 'sum' # 'sum' and 'avg' are the current options
 
 # Option to use the location name of a given sensor for its representation (specially designed for Tapia dataset, where
-# many sensors share the same name but use a int ID to distinguish their location)
-USE_LOCATION = False
+# many sensors share the same name but use an int ID to distinguish their location)
+USE_LOCATION = True
+LOCATION_FILE = DIR + DATASET + '/sensors_s1.csv'
 
 # Root name for output files
 OUTPUT_ROOT = 'word_' + OP + '_'
@@ -59,10 +60,11 @@ def is_integer(word):
     except ValueError:
         return False
         
-def sum_action_representation(action, model):
+def sum_action_representation(action, model, locations_df = None):
     # Function to represent an action/activity suming the embeddings of constituente words
     words = action.split('_')
-    embedding = np.zeros(ACTION_DIM) 
+    embedding = np.zeros(ACTION_DIM)
+    sensor_id = -1 # specially thought for Tapia datasets
     for word in words:
         word = word.lower()
         if word not in IGNORE_WORD_LIST: # word 'to' is not in the model (??); the word 'pir' has a totally different meaning
@@ -72,14 +74,22 @@ def sum_action_representation(action, model):
                 if USE_LOCATION == True:
                     print("Use location of " + word)
                     # TODO: use sensors_s1.csv file to assign locations to sensors
+                    sensor_id = int(word)
+
             else:   
                 embedding = embedding + model[word]
         
-    
+    if USE_LOCATION == True and sensor_id > 0:        
+        auxdf = locations_df.loc[locations_df["id"] == sensor_id]
+        location = auxdf.iloc[0]["location"]
+        # A location in sensors_s1 is "Office/study" -> Code to cope with it (and similar situations)
+        location = location.split("/")[0]
+        embedding = embedding + model[location]
+
     return embedding
 
 
-def avg_action_representation(action, model):
+def avg_action_representation(action, model, locations_df = None):
     # Function to represent an action/activity averaging the embeddings of constituente words
     words = action.split('_')
     embedding = np.zeros(ACTION_DIM) 
@@ -98,7 +108,7 @@ def avg_action_representation(action, model):
     return embedding
         
     
-def build_action_representation(df, model):
+def build_action_representation(df, model, locations_df = None):
     # Translate actions to neural embeddings depending on the value of variable OP (sum, avg)
     # For each action we have to separate conforming words split by '_'
     # translate those words to word vectors using the WORD_MODEL and represent
@@ -115,11 +125,11 @@ def build_action_representation(df, model):
     for action in actions:
         embedding = np.zeros(ACTION_DIM)
         if OP == 'sum':
-            embedding = sum_action_representation(action, model).tolist() # in order to serialize with JSON
+            embedding = sum_action_representation(action, model, locations_df).tolist() # in order to serialize with JSON
         if OP == 'avg':
-            embedding = avg_action_representation(action, model).tolist() # in order to serialize with JSON
+            embedding = avg_action_representation(action, model, locations_df).tolist() # in order to serialize with JSON
         
-        action_dict[action] = embedding
+        action_dict[action.lower()] = embedding
         
     return action_dict
 
@@ -130,7 +140,7 @@ def build_temporal_representation(model):
     
     for key in TEMPORAL_DICT:
         embedding = model[key]
-        temporal_dict[key] = embedding.tolist() # in order to serialize with JSON
+        temporal_dict[key.lower()] = embedding.tolist() # in order to serialize with JSON
         
     return temporal_dict
 
@@ -145,7 +155,7 @@ def build_activity_representation(unique_activities, model):
         if OP == 'avg':
             embedding = avg_action_representation(activity, model).tolist() # in order to serialize with JSON
         
-        activity_dict[activity] = embedding
+        activity_dict[activity.lower()] = embedding
         
     return activity_dict
     
@@ -160,9 +170,15 @@ def main(argv):
     print "Unique activities:"
     print unique_activities
 
-    total_activities = len(unique_activities)        
+    total_activities = len(unique_activities)
   
-    print df.head(10)        
+    print df.head(10)
+
+    locations_df = None
+    if USE_LOCATION == True:
+        locations_df = pd.read_csv(LOCATION_FILE, header=None, sep=',')
+        locations_df.columns = ['id', 'location', 'sensor']        
+
         
     # Translate actions to neural embeddings depending on the value of variable OP (sum, avg)
     # For each action we have to separate conforming words split by '_'
@@ -175,7 +191,7 @@ def main(argv):
     print "Model loaded"
         
     # action_dict holds a word vector (depending on OP variable) for each action in df
-    action_dict = build_action_representation(df, model)
+    action_dict = build_action_representation(df, model, locations_df)
     
     # Build another dictionary for temporal concepts
     temporal_dict = build_temporal_representation(model)

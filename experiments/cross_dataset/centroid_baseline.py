@@ -38,6 +38,8 @@ DAYTIME = 'with_time'
 NONES = 'no_nones'
 # Select between 'avg' and 'sum' for action/activity representation
 OP = 'sum'
+# Select segmentation period (0: perfect segmentation)
+DELTA = 0
 # Select the number of predictions to calculate
 N_PREDS = 5
 # END CONFIGURATION VARIABLES
@@ -46,12 +48,12 @@ N_PREDS = 5
 INPUT_DIR = BASE_INPUT_DIR + 'complete/' + DAYTIME + '_' + NONES + '/'
 
 # File where the embedding matrix weights are stored to initialize the embedding layer of the network
-EMBEDDING_WEIGHTS = INPUT_DIR + DATASET + '_' + OP + '_60_embedding_weights.npy'
+EMBEDDING_WEIGHTS = INPUT_DIR + DATASET + '_' + OP + '_' + str(DELTA) + '_embedding_weights.npy'
 # File where action sequences are stored
-X_FILE = INPUT_DIR + DATASET + '_' + OP + '_60_x.npy'
+X_FILE = INPUT_DIR + DATASET + '_' + OP + '_' + str(DELTA) + '_x.npy'
 # File where activity labels for the corresponding action sequences are stored in word embedding format (for regression)
-Y_EMB_FILE = INPUT_DIR + DATASET + '_' + OP + '_60_y_embedding.npy'
-Y_INDEX_FILE = INPUT_DIR + DATASET + '_' + OP + '_60_y_index.npy'
+Y_EMB_FILE = INPUT_DIR + DATASET + '_' + OP + '_' + str(DELTA) + '_y_embedding.npy'
+Y_INDEX_FILE = INPUT_DIR + DATASET + '_' + OP + '_' + str(DELTA) + '_y_index.npy'
 
 
 # To convert the predicted embedding by the regressor to a class we need the json file with that association

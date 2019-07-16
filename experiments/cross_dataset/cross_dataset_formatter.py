@@ -14,36 +14,42 @@ import os
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import np_utils
 
+from nltk.stem import PorterStemmer
+
 import numpy as np
 import json
 import random
 
 
 class CrossDatasetFormatter:
-    def __init__(self, datasets, base_input_dir, daytime, nones, op):
+    def __init__(self, datasets, base_input_dir, daytime, nones, op, delta):
         """Constructor        
         """
+        # Attribute to decide the use of word stemming
+        self.stem = False
+
         self.datasets = datasets
         self.base_input_dir = base_input_dir
         self.daytime = daytime
         self.nones = nones
         self.op = op
+        self.delta = delta
         # Load X files
         self.X_sequences = []
         for dataset in datasets:
-            filename = base_input_dir + dataset + '/complete/' + daytime + '_' + nones + '/' + dataset + '_' + op  + '_60_x.npy'            
+            filename = base_input_dir + dataset + '/complete/' + daytime + '_' + nones + '/' + dataset + '_' + op  + '_' + str(delta) + '_x.npy'            
             self.X_sequences.append(np.load(filename))       
 
         # Load y files (only index)
         self.y_onehot = []
         for dataset in datasets:
-            filename = base_input_dir + dataset + '/complete/' + daytime + '_' + nones + '/' + dataset + '_' + op  + '_60_y_index.npy'            
+            filename = base_input_dir + dataset + '/complete/' + daytime + '_' + nones + '/' + dataset + '_' + op  + '_' + str(delta) + '_y_index.npy'            
             self.y_onehot.append(np.load(filename))       
 
         # Load embedding files
         self.embedding_weights = []
         for dataset in datasets:
-            filename = base_input_dir + dataset + '/complete/' + daytime + '_' + nones + '/' + dataset + '_' + op  + '_60_embedding_weights.npy'
+            filename = base_input_dir + dataset + '/complete/' + daytime + '_' + nones + '/' + dataset + '_' + op  + '_' + str(delta) + '_embedding_weights.npy'
             print("File name: " + filename)
             self.embedding_weights.append(np.load(filename))       
 
@@ -97,26 +103,54 @@ class CrossDatasetFormatter:
         return self.X_seq_updated, self.y_onehot_updated, self.common_embedding_matrix, self.common_activity_to_int, self.common_int_to_activity, self.activity_index_to_embedding
 
 
+    def set_stemmer(self, stem):
+        self.stem = stem
+
+
     def build_common_activity_to_int_dict(self):
         """Function to fuse individual activity_to_int dicts
         """
         self.common_activity_to_int = {}
         index = 0
-        counter = 0
+        counter = 0        
         for i in range(len(self.activity_to_int_dicts)):
             for key in self.activity_to_int_dicts[i].keys():
                 #print("Activity: " + key)
                 counter += 1
                 if not key in self.common_activity_to_int:
                     self.common_activity_to_int[key] = index
-                    index += 1    
+                    index += 1
+                
         
         # Now build the int_to_activity dict
         self.common_int_to_activity = {v: k for k, v in self.common_activity_to_int.iteritems()}
-        # self.common_int_to_activity = {}
-        # for key in self.common_activity_to_int:
-        #     newkey = self.common_activity_to_int[key]
-        #     self.common_int_to_activity[newkey] = key
+        
+        if self.stem == True:
+            # We will also build a stemmed activity to int dict
+            porter = PorterStemmer()
+            self.stemmed_activity_to_int = {}
+            index = 0
+            counter = 0        
+            for i in range(len(self.activity_to_int_dicts)):
+                for key in self.activity_to_int_dicts[i].keys():
+                    #print("Activity: " + key)
+                    counter += 1
+                    # Build the stemmed key
+                    words = key.split("_")
+                    new_key = ""
+                    for word in words:
+                        new_key += "_" + porter.stem(word)
+
+                    # Remove first character ('_')
+                    new_key = new_key[1:]
+                    if not new_key in self.stemmed_activity_to_int:
+                        self.stemmed_activity_to_int[new_key] = index
+                        index += 1
+                
+        
+            # Now build the int_to_activity dict
+            self.stemmed_int_to_activity = {v: k for k, v in self.stemmed_activity_to_int.iteritems()}
+
 
     def save_common_activity_int_dicts(self, folder):
         """Function to save the generated dictionaries in json format
@@ -125,11 +159,20 @@ class CrossDatasetFormatter:
         for dataset in self.datasets:
             datasets = datasets + "_" + dataset
 
+        # Store common activity to int and int to activity
         with open(folder + datasets + "_activity_to_int_"+ self.nones +".json", 'w') as fp:
             json.dump(self.common_activity_to_int, fp, indent=4)
         
         with open(folder + datasets + "_int_to_activity_" + self.nones + ".json", 'w') as fp:
-            json.dump(self.common_int_to_activity, fp, indent=4)                 
+            json.dump(self.common_int_to_activity, fp, indent=4)
+
+        if self.stem == True:
+            # Store stemmed activity to int and int to activity
+            with open(folder + datasets + "_stemmed_activity_to_int_"+ self.nones +".json", 'w') as fp:
+                json.dump(self.stemmed_activity_to_int, fp, indent=4)
+        
+            with open(folder + datasets + "_stemmed_int_to_activity_" + self.nones + ".json", 'w') as fp:
+                json.dump(self.stemmed_int_to_activity, fp, indent=4)
 
     def build_common_action_to_int_dict(self):
         """Function to fuse individual action_to_int dicts
@@ -289,8 +332,6 @@ class CrossDatasetFormatter:
             
             print("")
 
-    
-
 
     def update_y_onehot(self):
         """Function to update the y_onehot for all datasets, taking into account the common activities found in them
@@ -315,6 +356,35 @@ class CrossDatasetFormatter:
         # At this point, all y_up in y_onehot_updated are numeric indices of activities -> Convert to categorical
         for i in range(len(self.y_onehot_updated)):
             self.y_onehot_updated[i] = np_utils.to_categorical(self.y_onehot_updated[i], num_classes=num_classes)
+
+        if self.stem == True:
+            porter = PorterStemmer()
+            num_classes = len(self.stemmed_activity_to_int.keys())
+            self.y_stemmed_onehot_updated = []
+            for i in range(len(self.y_onehot)):
+                y = self.y_onehot[i]
+                int_to_activity = self.int_to_activity_dicts[i]            
+                y_up = []
+                for one_hot in y:
+                    index = np.argmax(one_hot, axis=0)
+                    orig_activity = int_to_activity[str(index)]
+                    stemmed_activity = ""
+                    words = orig_activity.split("_")
+                    for word in words:
+                        stemmed_activity += "_" + porter.stem(word)
+
+                    stemmed_activity = stemmed_activity[1:]
+                    new_index = self.stemmed_activity_to_int[stemmed_activity]
+                    y_up.append(new_index)
+        
+                # TODO: Test the following list comprehension instead of the second for loop
+                # y_up = [common_activity_to_int[int_to_activity[index]] for index in y]
+                y_up = np.array(y_up) 
+                self.y_stemmed_onehot_updated.append(y_up)
+    
+            # At this point, all y_up in y_onehot_updated are numeric indices of activities -> Convert to categorical
+            for i in range(len(self.y_stemmed_onehot_updated)):
+                self.y_stemmed_onehot_updated[i] = np_utils.to_categorical(self.y_stemmed_onehot_updated[i], num_classes=num_classes)
 
     def test_view_y_onehot(self):
         for i in range(len(self.y_onehot_updated)):
@@ -370,7 +440,7 @@ Main function used to test the functionality of CrossDatasetFormatter class
 
 def main(argv):
     # List of datasets to reformat and fuse
-    DATASETS = ['kasterenA', 'kasterenB']
+    DATASETS = ['kasterenA', 'tapia_s1']
     # Directories of formatted datasets
     BASE_INPUT_DIR = '../../formatted_datasets/'
 
@@ -380,8 +450,11 @@ def main(argv):
     NONES = 'no_nones'
     # Select between 'avg' and 'sum' for action/activity representation
     OP = 'sum'
+    # Select segmentation period (0: perfect segmentation)
+    DELTA = 60
 
-    cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP)
+    cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP, DELTA)
+    cross_dataset_formatter.set_stemmer(True)
     keyslist = []
     for d in cross_dataset_formatter.action_to_int_dicts:
         keyslist.append(d.keys())
@@ -389,7 +462,7 @@ def main(argv):
         print(d)
     common_actions = set(keyslist[0]).intersection(*keyslist)
     print("common actions:")
-    print(common_actions)
+    print(common_actions)   
     
     X_seq_up, y_onehot_up, common_embedding_matrix, common_activity_to_int, common_int_to_activity, common_activity_to_emb = cross_dataset_formatter.reformat_datasets()
     print("common action to int:")
@@ -398,10 +471,15 @@ def main(argv):
     print(cross_dataset_formatter.common_int_to_action)
         
     print("View reformatted datasets' information")
-    print("Common activity_to_int:")
+    print("Common activity_to_int (" + str(len(common_activity_to_int.keys())) +"):")
     print(common_activity_to_int)
     print("Common int_to_activity:")
     print(common_int_to_activity)
+    print("--------------------------------------")
+    print("Stemmed activity_to_int (" + str(len(cross_dataset_formatter.stemmed_activity_to_int.keys())) +"):")
+    print(cross_dataset_formatter.stemmed_activity_to_int)
+    print("Stemmed int_to_activity:")
+    print(cross_dataset_formatter.stemmed_int_to_activity)
     print("--------------------------------------")
     print("common embedding matrix shape: ", common_embedding_matrix.shape)
 
