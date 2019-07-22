@@ -401,12 +401,17 @@ class CrossDatasetFormatter:
         """Function to build a common activity index to embedding dictionary
         """
         self.activity_index_to_embedding = {}
+        self.activity_name_to_embedding = {}
         for ae_dict in self.activity_to_emb_dicts:
             for key in ae_dict.keys():
                 try:
                     index = self.common_activity_to_int[key]
                     if index not in self.activity_index_to_embedding:
                         self.activity_index_to_embedding[index] = ae_dict[key]
+                    else:
+                        print("Activity " + key + " is already in the dict")
+                    if key not in self.activity_name_to_embedding:
+                        self.activity_name_to_embedding[key] = ae_dict[key]
                     else:
                         print("Activity " + key + " is already in the dict")
                 except KeyError:
@@ -440,7 +445,7 @@ Main function used to test the functionality of CrossDatasetFormatter class
 
 def main(argv):
     # List of datasets to reformat and fuse
-    DATASETS = ['kasterenA', 'tapia_s1']
+    DATASETS = ['kasterenB', 'kasterenA' 'tapia_s1']
     # Directories of formatted datasets
     BASE_INPUT_DIR = '../../formatted_datasets/'
 
