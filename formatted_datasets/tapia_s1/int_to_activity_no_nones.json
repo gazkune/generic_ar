@@ -1,0 +1,23 @@
+{
+    "0": "use_toilet", 
+    "1": "preparing_breakfast", 
+    "2": "bathing", 
+    "3": "dressing", 
+    "4": "grooming", 
+    "5": "going_out_to_work", 
+    "6": "preparing_lunch", 
+    "7": "washing_dishes", 
+    "8": "preparing_a_beverage", 
+    "9": "going_out_for_shopping", 
+    "10": "putting_away_groceries", 
+    "11": "preparing_a_snack", 
+    "12": "preparing_dinner", 
+    "13": "watching_tv", 
+    "14": "cleaning", 
+    "15": "lawn_work", 
+    "16": "doing_laundry", 
+    "17": "going_out_for_entertainment", 
+    "18": "putting_away_laundry", 
+    "19": "washing_hands", 
+    "20": "putting_away_dishes"
+}
