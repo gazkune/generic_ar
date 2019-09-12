@@ -23,10 +23,10 @@ import random
 
 # Directory of original datasets 
 DIR = '../datasets/'
-DATASET = 'tapia_s1'
+DATASET = 'kasterenB' #'tapia_s1'
 # Choose the specific dataset
-#CSV = DIR + DATASET + '/' + DATASET + '_groundtruth.csv'
-CSV = DIR + DATASET + '/' + 'mit_s1-m.csv'
+CSV = DIR + DATASET + '/' + DATASET + '_groundtruth.csv'
+#CSV = DIR + DATASET + '/' + 'mit_s1-m.csv'
 
 # Number of dimensions of an action vector
 WORD_DIM = 300 # Make coherent with selected WORD2VEC_MODEL
@@ -41,7 +41,7 @@ DELTA = 60 # size of the sliding window for action segmentation in seconds (Kast
 MAX_ABSOLUTE_SEQUENCE_LENGTH = 250
 
 # Option to include (or not) day time period in each of the sequences (ex: [morning, frontdoor, frontdoor])
-DAYTIME = 'with_time' # select between 'no_time' and 'with_time'
+DAYTIME = 'no_time' # select between 'no_time' and 'with_time'
 
 # Option to include (or not) activities of type 'None' 
 NONES = 'no_nones' # select between 'no_nones' and 'with_nones'
@@ -276,7 +276,7 @@ def prepare_embeddings(df, action_dict, activity_dict, temporal_dict, activity_t
             
             # Implementation of strategy 1
             # Find the dominant activity in the time slice of auxdf
-            activity = auxdf['activity'].value_counts().idxmax()
+            activity = auxdf['activity'].value_counts().idxmax().lower()
             y_index.append(activity_to_int[activity])
             
             # Implementation of strategy 2
@@ -379,7 +379,8 @@ def main(argv):
 
     unique_activities_orig = df['activity'].unique()
     unique_activities = []
-    for activity in unique_activities:
+    
+    for activity in unique_activities_orig:
         unique_activities.append(activity.lower())
 
     print("Unique activities:")

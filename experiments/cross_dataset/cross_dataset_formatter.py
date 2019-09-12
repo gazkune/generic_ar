@@ -445,7 +445,7 @@ Main function used to test the functionality of CrossDatasetFormatter class
 
 def main(argv):
     # List of datasets to reformat and fuse
-    DATASETS = ['kasterenB', 'kasterenA' 'tapia_s1']
+    DATASETS = ['kasterenA', 'kasterenB', 'kasterenC', 'tapia_s1']
     # Directories of formatted datasets
     BASE_INPUT_DIR = '../../formatted_datasets/'
 
@@ -456,7 +456,7 @@ def main(argv):
     # Select between 'avg' and 'sum' for action/activity representation
     OP = 'sum'
     # Select segmentation period (0: perfect segmentation)
-    DELTA = 60
+    DELTA = 0
 
     cross_dataset_formatter = CrossDatasetFormatter(DATASETS, BASE_INPUT_DIR, DAYTIME, NONES, OP, DELTA)
     cross_dataset_formatter.set_stemmer(True)

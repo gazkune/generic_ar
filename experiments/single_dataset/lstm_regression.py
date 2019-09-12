@@ -39,11 +39,11 @@ from utils import Utils
 
 # BEGIN CONFIGURATION VARIABLES
 # Dataset
-DATASET = 'tapia_s1' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
+DATASET = 'kasterenC' # Select between 'kasterenA', 'kasterenB', 'kasterenC' and 'tapia_s1'
 # Directory of formatted datasets
 BASE_INPUT_DIR = '../../formatted_datasets/' + DATASET + '/'
 # Select between 'with_time' and 'no_time'
-DAYTIME = 'with_time'
+DAYTIME = 'no_time'
 # Select between 'with_nones' and 'no_nones'
 NONES = 'no_nones'
 # Select between 'avg' and 'sum' for action/activity representation
@@ -55,11 +55,11 @@ FOLDS = 10
 # Select imbalance data treatment
 TREAT_IMBALANCE = False
 # Select the number of epochs for training
-EPOCHS = 150
+EPOCHS = 250
 # Select batch size
-BATCH_SIZE = 256
+BATCH_SIZE = 1024
 # Select dropout value
-DROPOUT = 0.8
+DROPOUT = 0.7
 # Select loss function
 LOSS = 'cosine_proximity'
 #LOSS = 'mean_squared_error'
@@ -346,10 +346,10 @@ def obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_act
 
     # Simple approach: use fors and check one by one
     
-    def closest_activity(pred, activity_dict):
+    def closest_activity(pred, activity_to_int_dict, activity_dict):
         min_dist = 100
         activity = ""
-        for key in activity_dict:
+        for key in activity_to_int_dict:
             dist = distance.cosine(pred, activity_dict[key])
             if dist < min_dist: 
                 min_dist = dist
@@ -358,7 +358,7 @@ def obtain_class_predictions(yp, activity_dict, activity_to_int_dict, int_to_act
 
     ypred = []
     for i in xrange(len(yp)):
-        activity, dist = closest_activity(yp[i], activity_dict)
+        activity, dist = closest_activity(yp[i], activity_to_int_dict, activity_dict)
         ypred.append(activity_to_int_dict[activity])
 
     return np.array(ypred)
