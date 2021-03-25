@@ -44,7 +44,7 @@ Pygments==2.2.0
 pyparsing==2.1.9
 python-dateutil==2.5.3
 pytz==2016.6.1
-PyYAML==3.13
+PyYAML==5.4
 pyzmq==16.0.4
 requests==2.21.0
 scandir==1.6
