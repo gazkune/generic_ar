@@ -17,7 +17,7 @@ gast==0.2.0
 gensim==3.4.0
 grpcio==1.10.0
 h5py==2.6.0
-html5lib==0.9999999
+html5lib==0.999999999
 idna==2.8
 imbalanced-learn==0.4.3
 ipykernel==4.8.0
